@@ -1,0 +1,8 @@
+# Server configurations
+server:
+  port: 6980
+  verbose: 1
+  ginMode: "debug"
+
+database:
+  uri: "mongodb://192.168.1.100:27017"
