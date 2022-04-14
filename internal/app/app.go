@@ -4,9 +4,12 @@ import (
 	"context"
 	"fmt"
 	"iot-hub-api/internal/config"
+	"iot-hub-api/internal/restclient"
 	"iot-hub-api/internal/station"
 	"log"
+	"time"
 
+	"github.com/brestmatias/golang-restclient/rest"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -45,9 +48,10 @@ func Start() {
 func buildApp(ctx context.Context) *App {
 	configs := config.GetConfigs()
 
-	client := buildMongoClient(configs, ctx)
+	mongoClient := buildMongoClient(configs, ctx)
+	stationClient := buildRestClients(configs)
 
-	stationController := station.New(client)
+	stationController := station.New(mongoClient, stationClient)
 
 	return &App{
 		Configs:           configs,
@@ -67,4 +71,22 @@ func buildMongoClient(configs *config.Configs, ctx context.Context) *mongo.Clien
 		log.Fatal(err)
 	}
 	return client
+}
+
+func buildRestClients(configs *config.Configs) restclient.StationClient {
+	customPool := &rest.CustomPool{
+		MaxIdleConnsPerHost: 100,
+	}
+
+	rb := rest.RequestBuilder{
+		BaseURL:        "http://",
+		ConnectTimeout: 100 * time.Millisecond,
+		Timeout:        100 * time.Millisecond,
+		ContentType:    rest.JSON,
+		DisableCache:   true,
+		DisableTimeout: false,
+		CustomPool:     customPool,
+	}
+
+	return restclient.NewStationClient(&rb)
 }
