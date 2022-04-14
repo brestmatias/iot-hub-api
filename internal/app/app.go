@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"iot-hub-api/internal/config"
+	"iot-hub-api/internal/repository"
 	"iot-hub-api/internal/restclient"
 	"iot-hub-api/internal/station"
 	"log"
@@ -51,7 +52,9 @@ func buildApp(ctx context.Context) *App {
 	mongoClient := buildMongoClient(configs, ctx)
 	stationClient := buildRestClients(configs)
 
-	stationController := station.New(mongoClient, stationClient)
+	stationRepository := repository.NewStationRepository(mongoClient.Database(configs.Database.DB))
+
+	stationController := station.New(stationRepository, stationClient)
 
 	return &App{
 		Configs:           configs,

@@ -15,6 +15,7 @@ type ConfigFile struct {
 	} `yaml:"server"`
 	Database struct {
 		Uri string `yaml:"uri"`
+		DB  string `yaml:"db"`
 	} `yaml:"database"`
 	StationRestClient struct {
 		BaseURL        string `yaml:"baseURL"`

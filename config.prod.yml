@@ -5,7 +5,8 @@ server:
 
 database:
  uri: "mongodb://localhost:27017"
-
+ db: "home"
+ 
 station-rest-client:
  baseURL:        "http://"
  connectTimeout: 50
