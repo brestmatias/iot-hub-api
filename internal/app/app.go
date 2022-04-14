@@ -25,7 +25,7 @@ const logo = `
 ╚═╝ ╚═════╝    ╚═╝       ╚═╝  ╚═╝ ╚═════╝ ╚═════╝     ╚═╝  ╚═╝╚═╝     ╚═╝`
 
 type App struct {
-	Configs           *config.Configs
+	Configs           *config.ConfigFile
 	StationController *station.Controller
 }
 
@@ -35,14 +35,14 @@ func Start() {
 	ctx := context.Background()
 	app := buildApp(ctx)
 
-	if app.Configs.GinMode == "release" {
+	if app.Configs.Server.GinMode == "release" {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
 	router := gin.New()
 	buildRouter(ctx, router, app)
-	fmt.Println("💪💪💪💪💪💪💪💪💪 IOT-HUB-API READY STARTING SERVER IN PORT: ", app.Configs.Port)
-	router.Run(":" + app.Configs.Port)
+	fmt.Println("💪💪💪💪💪💪💪💪💪 IOT-HUB-API READY STARTING SERVER IN PORT: ", app.Configs.Server.Port)
+	router.Run(":" + app.Configs.Server.Port)
 }
 
 func buildApp(ctx context.Context) *App {
@@ -59,8 +59,8 @@ func buildApp(ctx context.Context) *App {
 	}
 }
 
-func buildMongoClient(configs *config.Configs, ctx context.Context) *mongo.Client {
-	clientOptions := options.Client().ApplyURI(configs.DBUri)
+func buildMongoClient(configs *config.ConfigFile, ctx context.Context) *mongo.Client {
+	clientOptions := options.Client().ApplyURI(configs.Database.Uri)
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
 		log.Fatal(err)
@@ -73,18 +73,18 @@ func buildMongoClient(configs *config.Configs, ctx context.Context) *mongo.Clien
 	return client
 }
 
-func buildRestClients(configs *config.Configs) restclient.StationClient {
+func buildRestClients(configs *config.ConfigFile) restclient.StationClient {
 	customPool := &rest.CustomPool{
 		MaxIdleConnsPerHost: 100,
 	}
 
 	rb := rest.RequestBuilder{
-		BaseURL:        "http://",
-		ConnectTimeout: 100 * time.Millisecond,
-		Timeout:        100 * time.Millisecond,
+		BaseURL:        configs.StationRestClient.BaseURL,
+		ConnectTimeout: time.Duration(configs.StationRestClient.ConnectTimeout) * time.Millisecond,
+		Timeout:        time.Duration(configs.StationRestClient.Timeout) * time.Millisecond,
 		ContentType:    rest.JSON,
-		DisableCache:   true,
-		DisableTimeout: false,
+		DisableCache:   configs.StationRestClient.DisableCache,
+		DisableTimeout: configs.StationRestClient.DisableTimeout,
 		CustomPool:     customPool,
 	}
 

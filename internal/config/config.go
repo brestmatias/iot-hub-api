@@ -7,27 +7,25 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type Configs struct {
-	Verbose bool
-	Port    string
-	GinMode string
-
-	DBUri string
-}
-
+// OJO!!! IDENTADO DEBE HACERSE CON ESPACIOS EN EL YML
 type ConfigFile struct {
 	Server struct {
 		Port    string `yaml:"port"`
-		Verbose int    `yaml:"verbose"`
 		GinMode string `yaml:"ginMode"`
 	} `yaml:"server"`
 	Database struct {
 		Uri string `yaml:"uri"`
 	} `yaml:"database"`
+	StationRestClient struct {
+		BaseURL        string `yaml:"baseURL"`
+		ConnectTimeout int    `yaml:"connectTimeout"`
+		Timeout        int    `yaml:"timeout"`
+		DisableCache   bool   `yaml:"disableCache"`
+		DisableTimeout bool   `yaml:"disableTimeout"`
+	} `yaml:"station-rest-client"`
 }
 
-func GetConfigs() *Configs {
-	configs := Configs{}
+func GetConfigs() *ConfigFile {
 	env := os.Getenv("IOTENV")
 	if env == "" {
 		env = "dev"
@@ -48,16 +46,8 @@ func GetConfigs() *Configs {
 	log.Println("GET-CONFIG-FOR", env)
 
 	if ginMode := os.Getenv("GIN_MODE"); ginMode == "release" {
-		configs.GinMode = "release"
-	} else {
-		configs.GinMode = cfgFile.Server.GinMode
+		cfgFile.Server.GinMode = "release"
 	}
 
-	configs.Port = cfgFile.Server.Port
-	if cfgFile.Server.Verbose == 1 {
-		configs.Verbose = true
-	}
-
-	configs.DBUri = cfgFile.Database.Uri
-	return &configs
+	return &cfgFile
 }

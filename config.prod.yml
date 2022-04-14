@@ -1,8 +1,14 @@
 # Server configurations
 server:
-  port: 8080
-  verbose: 0
-  ginMode: "release"
+ port: 8080
+ ginMode: "release"
 
 database:
-  uri: "mongodb://localhost:27017"
+ uri: "mongodb://localhost:27017"
+
+station-rest-client:
+ baseURL:        "http://"
+ connectTimeout: 100
+ timeout:       100
+ disableCache:   true
+ disableTimeout: false
