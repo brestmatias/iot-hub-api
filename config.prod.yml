@@ -1,0 +1,8 @@
+# Server configurations
+server:
+  port: 8080
+  verbose: 0
+  ginMode: "release"
+
+database:
+  uri: "mongodb://localhost:27017"
