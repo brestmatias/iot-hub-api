@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -28,20 +29,25 @@ func (controller *Controller) DiscoverStations(ginCtx *gin.Context, ctx context.
 
 func localAddresses() {
 	ifaces, err := net.Interfaces()
-	
 	if err != nil {
 		log.Print(fmt.Errorf("localAddresses: %v\n", err.Error()))
 		return
 	}
+
 	for _, i := range ifaces {
 		addrs, err := i.Addrs()
 		if err != nil {
 			log.Print(fmt.Errorf("localAddresses: %v\n", err.Error()))
 			continue
 		}
-		for _, a := range addrs {
-			log.Printf("%v %v\n", i.Name, a)
-			a.Network()
+		if strings.Contains(i.Flags.String(), "up") {
+			for _, a := range addrs {
+				ip, net, _ := net.ParseCIDR(a.String())
+				fmt.Printf("%v %v %v %v %v %v\n", i.Name, a, ip.To4(), ip, net.IP.IsLoopback(), ip.IsPrivate())
+
+			}
 		}
+
 	}
+
 }
