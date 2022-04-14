@@ -28,15 +28,20 @@ func (c *Controller) DiscoverStations(ginCtx *gin.Context, ctx context.Context) 
 	for _, i := range *netAddresses {
 		fmt.Println(i.Interface.Name, i.IP)
 		ips := network.GetAllNetworkIps(&i)
-		fmt.Println(ips)
+		//fmt.Println(ips)
+		fmt.Println("Looking for alive stations")
 		for _, ip := range *ips {
-			beaconResponse, err := c.StationClient.GetBeacon(ip.String())
-			if err != nil {
-				fmt.Println(beaconResponse)
-			} else {
+			beaconResponse, _ := c.StationClient.GetBeacon(ip.String())
+			/*if err != nil {
 				fmt.Println(err)
+			} else {
+				fmt.Println(*beaconResponse)
+			}*/
+			if beaconResponse != nil {
+				fmt.Println(beaconResponse)
 			}
 		}
+		fmt.Println("END Looking for alive stations")
 	}
 
 }

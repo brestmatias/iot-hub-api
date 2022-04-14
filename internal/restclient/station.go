@@ -1,14 +1,13 @@
 package restclient
 
 import (
-	"fmt"
 	"iot-hub-api/model"
 
 	"github.com/brestmatias/golang-restclient/rest"
 )
 
 type StationClient interface {
-	GetBeacon(address string) (model.BeaconResponse, error)
+	GetBeacon(address string) (*model.BeaconResponse, error)
 }
 
 type stationClient struct {
@@ -22,13 +21,15 @@ func NewStationClient(requestBuilder *rest.RequestBuilder) StationClient {
 }
 
 // GetBeacon implements StationClient
-func (s *stationClient) GetBeacon(address string) (model.BeaconResponse, error) {
+func (s *stationClient) GetBeacon(address string) (*model.BeaconResponse, error) {
 	var response model.BeaconResponse
 	r := s.rb.Get(address + "/beacon")
-	fmt.Println(r)
 	if r.Err != nil {
-		return response, r.Err
+		return nil, r.Err
 	}
-	err := r.FillUp(response)
-	return response, err
+	err := r.FillUp(&response)
+	if err != nil {
+		return nil, err
+	}
+	return &response, nil
 }

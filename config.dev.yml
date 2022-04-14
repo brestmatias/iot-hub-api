@@ -8,7 +8,7 @@ database:
 
 station-rest-client:
  baseURL:        "http://"
- connectTimeout: 100
+ connectTimeout: 50
  timeout:       100
  disableCache:   true
  disableTimeout: false
