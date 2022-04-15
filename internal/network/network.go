@@ -31,7 +31,6 @@ func GetLocalAddresses() (*[]NetworkAddress, error) {
 			for _, a := range addrs {
 				ip, net, _ := net.ParseCIDR(a.String())
 				if !net.IP.IsLoopback() && ip.IsPrivate() && net.IP.To4() != nil {
-					//fmt.Printf("%v %v %v \n", i.Name, ip, net.Mask)
 					result = append(result, NetworkAddress{
 						Interface: i,
 						IP:        ip,

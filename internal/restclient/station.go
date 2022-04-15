@@ -2,12 +2,14 @@ package restclient
 
 import (
 	"iot-hub-api/model"
+	"iot-hub-api/tracing"
 
 	"github.com/brestmatias/golang-restclient/rest"
+	"github.com/gin-gonic/gin"
 )
 
 type StationClient interface {
-	GetBeacon(address string) (*model.BeaconResponse, error)
+	GetBeacon(c *gin.Context, address string) (*model.BeaconResponse, error)
 }
 
 type stationClient struct {
@@ -21,7 +23,10 @@ func NewStationClient(requestBuilder *rest.RequestBuilder) StationClient {
 }
 
 // GetBeacon implements StationClient
-func (s *stationClient) GetBeacon(address string) (*model.BeaconResponse, error) {
+func (s *stationClient) GetBeacon(c *gin.Context, address string) (*model.BeaconResponse, error) {
+	if tracing.VerboseOn(c) {
+		defer tracing.Un(tracing.Trace(c, "GetBeacon "+address))
+	}
 	var response model.BeaconResponse
 	r := s.rb.Get(address + "/beacon")
 	if r.Err != nil {

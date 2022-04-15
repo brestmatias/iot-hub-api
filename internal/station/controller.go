@@ -25,7 +25,7 @@ func New(stationRepository repository.StationRepository, stationClient restclien
 
 func (c *Controller) DiscoverStations(ginCtx *gin.Context, ctx context.Context) {
 	stationService := NewStationService(c.StationRepository, c.StationClient)
-	sta := stationService.SeekAndSaveOnlineStations()
+	sta := stationService.SeekAndSaveOnlineStations(ginCtx)
 	if len(*sta) == 0 {
 		ginCtx.Writer.WriteHeader(http.StatusNoContent)
 		return
