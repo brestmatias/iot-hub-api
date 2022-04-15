@@ -5,8 +5,8 @@ import (
 )
 
 type BeaconResponse struct {
-	ID      string   `json:"id"`
-	Outputs []string `json:"outputs"`
+	ID         string   `json:"id"`
+	Interfaces []string `json:"outputs"`
 }
 
 type Station struct {
@@ -14,5 +14,5 @@ type Station struct {
 	ID         string             `bson:"id" json:"id"`
 	IP         string             `bson:"ip" json:"ip"`
 	LastUpdate primitive.DateTime `bson:"last_update" json:"last_update"`
-	Outputs    []string           `bson:"outputs" json:"outputs"`
+	Interfaces []string           `bson:"outputs" json:"outputs"`
 }
