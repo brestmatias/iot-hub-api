@@ -26,15 +26,36 @@ func NewStationService(stationRepository repository.StationRepository, stationCl
 	}
 }
 
+func networkAlreadyScanned(scannedNetworks *[]string, currentCIDR string) bool {
+	if len(*scannedNetworks) == 0 {
+		*scannedNetworks = append(*scannedNetworks, currentCIDR)
+		return false
+	}
+
+	for _, i := range *scannedNetworks {
+		if i == currentCIDR {
+			return true
+		}
+	}
+	*scannedNetworks = append(*scannedNetworks, currentCIDR)
+	return false
+}
+
 func (s *stationService) SeekOnlineStations() *[]model.Station {
+	method := "SeekOnlineStations"
 	var result []model.Station
-	netAddresses, _ := network.GetLocalAddresses()
-	//TODO!!!! revisar que si el array de networks es de longitud mayor a uno y son las mismas redes hay que hacer una sola recorrida
-	for _, i := range *netAddresses {
-		log.Println(i.Interface.Name, i.IP)
-		ips := network.GetAllNetworkIps(&i)
-		log.Println("Looking for alive stations")
+	localNetWorkAddresses, _ := network.GetLocalAddresses()
+	var scannedNetworks []string
+	for _, localNetworkAddress := range *localNetWorkAddresses {
+		if networkAlreadyScanned(&scannedNetworks, localNetworkAddress.Net.String()) {
+			continue
+		}
+		log.Printf("[method:%v][interface_name:%v][ip:%v][net_cidr:%v] Looking for online stations", method, localNetworkAddress.Interface.Name, localNetworkAddress.IP, localNetworkAddress.Net.String())
+		ips := network.GetAllNetworkIps(&localNetworkAddress)
 		for _, ip := range *ips {
+			if ip.Equal(localNetworkAddress.IP) {
+				continue
+			}
 			beaconResponse, _ := s.StationClient.GetBeacon(ip.String())
 			/*if err != nil {
 				log.Println("Error ")
@@ -49,7 +70,7 @@ func (s *stationService) SeekOnlineStations() *[]model.Station {
 				fmt.Println(beaconResponse)
 			}
 		}
-		log.Println("END Looking for alive stations")
+		log.Println("END Looking for online stations")
 	}
 	return &result
 }
