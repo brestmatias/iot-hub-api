@@ -72,9 +72,9 @@ func (s *stationService) SeekOnlineStations(c *gin.Context) *[]model.Station {
 			beaconResponse, _ := s.StationClient.GetBeacon(c, ip.String())
 			if beaconResponse != nil {
 				sta := model.Station{
-					ID:      beaconResponse.ID,
-					IP:      ip.String(),
-					Outputs: beaconResponse.Outputs,
+					ID:         beaconResponse.ID,
+					IP:         ip.String(),
+					Interfaces: beaconResponse.Interfaces,
 				}
 				result = append(result, sta)
 				tracing.Log("[method:%v][beacon:%+v] Beacon response", c, method, result)
