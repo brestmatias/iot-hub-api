@@ -24,6 +24,13 @@ type ConfigFile struct {
 		DisableCache   bool   `yaml:"disableCache"`
 		DisableTimeout bool   `yaml:"disableTimeout"`
 	} `yaml:"station-rest-client"`
+	SlowStationRestClient struct {
+		BaseURL        string `yaml:"baseURL"`
+		ConnectTimeout int    `yaml:"connectTimeout"`
+		Timeout        int    `yaml:"timeout"`
+		DisableCache   bool   `yaml:"disableCache"`
+		DisableTimeout bool   `yaml:"disableTimeout"`
+	} `yaml:"slow-station-rest-client"`
 }
 
 func GetConfigs() *ConfigFile {

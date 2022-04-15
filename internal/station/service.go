@@ -14,6 +14,7 @@ import (
 type StationService interface {
 	SeekOnlineStations(*gin.Context) *[]model.Station
 	SeekAndSaveOnlineStations(*gin.Context) *[]model.Station
+	DoHandshake(*gin.Context)
 }
 
 type stationService struct {
@@ -102,6 +103,23 @@ func (s *stationService) SeekAndSaveOnlineStations(c *gin.Context) *[]model.Stat
 		}
 	}
 	return &result
+}
+
+func (s *stationService) DoHandshake(c *gin.Context) {
+	method := "DoHandshake"
+	stations := s.StationRepository.FindAll()
+	localNetWorkAddresses, _ := network.GetLocalAddresses()
+	brokerIp := (*localNetWorkAddresses)[0].IP
+	tracing.Log("[method:%s][stations:%+v]Doing Handshake", c, method, stations)
+	for _, station := range *stations {
+		r, err := s.StationClient.SetBroker(c, station.IP, brokerIp.String())
+		if err != nil {
+			tracing.Log("[method:%s][station:%+v]Error Doing handshake %s", c, method, station, err.Error())
+		} else {
+			tracing.Log("[method:%s][result:%+v]Handshake OK", c, method, r)
+		}
+	}
+	tracing.Log("[method:%s]End Handshake", c, method)
 }
 
 //TODO: IMPLEMENTAR UN HANDSHAKE QUE SINCRONICE A TODAS LAS ESTACIONES CON SU PADRE

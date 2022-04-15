@@ -33,3 +33,8 @@ func (c *Controller) DiscoverStations(ginCtx *gin.Context, ctx context.Context) 
 	log.Printf("[method:discover_stations][result:{%+v}] Suscessfull ", sta)
 	ginCtx.JSON(http.StatusOK, sta)
 }
+func (c *Controller) DoHandshake(ginCtx *gin.Context, ctx context.Context) {
+	stationService := NewStationService(c.StationRepository, c.StationClient)
+	stationService.DoHandshake(ginCtx)
+	ginCtx.Writer.WriteHeader(http.StatusOK)
+}

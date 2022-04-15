@@ -10,7 +10,14 @@ database:
 
 station-rest-client:
  baseURL:        "http://"
- connectTimeout: 50
+ connectTimeout: 90
+ timeout:       100
+ disableCache:   true
+ disableTimeout: false
+
+slow-station-rest-client:
+ baseURL:        "http://"
+ connectTimeout: 100
  timeout:       100
  disableCache:   true
  disableTimeout: false

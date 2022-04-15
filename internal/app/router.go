@@ -26,4 +26,8 @@ func buildRouter(ctx context.Context, router *gin.Engine, app *App) {
 		app.StationController.DiscoverStations(c, ctx)
 	})
 
+	router.POST("/station/handshake", func(c *gin.Context) {
+		app.StationController.DoHandshake(c, ctx)
+	})
+
 }

@@ -91,5 +91,15 @@ func buildRestClients(configs *config.ConfigFile) restclient.StationClient {
 		CustomPool:     customPool,
 	}
 
-	return restclient.NewStationClient(&rb)
+	srb := rest.RequestBuilder{
+		BaseURL:        configs.SlowStationRestClient.BaseURL,
+		ConnectTimeout: time.Duration(configs.SlowStationRestClient.ConnectTimeout) * time.Millisecond,
+		Timeout:        time.Duration(configs.SlowStationRestClient.Timeout) * time.Millisecond,
+		ContentType:    rest.JSON,
+		DisableCache:   configs.SlowStationRestClient.DisableCache,
+		DisableTimeout: configs.SlowStationRestClient.DisableTimeout,
+		CustomPool:     customPool,
+	}
+
+	return restclient.NewStationClient(&rb, &srb)
 }

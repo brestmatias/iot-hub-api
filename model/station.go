@@ -9,6 +9,11 @@ type BeaconResponse struct {
 	Interfaces []string `json:"interfaces"`
 }
 
+type StationPutResponse struct {
+	ID     string `json:"id,omitempty"`
+	Broker string `json:"broker,omitempty"`
+}
+
 type Station struct {
 	DocId      primitive.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
 	ID         string             `bson:"id" json:"id"`

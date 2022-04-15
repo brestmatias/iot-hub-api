@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 	"iot-hub-api/model"
 	"log"
 	"time"
@@ -13,6 +14,7 @@ import (
 )
 
 type StationRepository interface {
+	FindAll() *[]model.Station
 	FindByStationID(stationID string) *model.Station
 	InsertOne(model.Station) *model.Station
 	Update(model.Station) (*model.Station, error)
@@ -72,4 +74,19 @@ func (s *stationRepository) FindByStationID(stationID string) *model.Station {
 
 func (s *stationRepository) getStationCollection() *mongo.Collection {
 	return s.MongoDB.Collection("station")
+}
+
+func (s *stationRepository) FindAll() *[]model.Station {
+	method := "FindAll"
+	cur, err := s.getStationCollection().Find(context.TODO(), bson.D{}, nil)
+	if err != nil {
+		log.Println(fmt.Errorf("[method:%s]Error Getting Results", method), err)
+	}
+	defer cur.Close(context.TODO())
+	var result []model.Station
+	err = cur.All(context.TODO(), &result)
+	if err != nil {
+		log.Println(fmt.Errorf("[method:%s]Error Decoding Results", method), err)
+	}
+	return &result
 }
