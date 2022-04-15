@@ -4,6 +4,7 @@ import (
 	"context"
 	"iot-hub-api/internal/repository"
 	"iot-hub-api/internal/restclient"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -29,5 +30,6 @@ func (c *Controller) DiscoverStations(ginCtx *gin.Context, ctx context.Context) 
 		ginCtx.Writer.WriteHeader(http.StatusNoContent)
 		return
 	}
+	log.Printf("[method:discover_stations][result:{%+v}] Suscessfull ", sta)
 	ginCtx.JSON(http.StatusOK, sta)
 }
