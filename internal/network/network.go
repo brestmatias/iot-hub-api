@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 	"strings"
 )
 
 type Network interface {
 	GetLocalAddresses() ([]NetworkAddress, error)
 	GetAllNetworkIps(*NetworkAddress) *[]net.IP
+	GetHostName() string
 }
 
 func GetLocalAddresses() (*[]NetworkAddress, error) {
@@ -63,4 +65,12 @@ func GetAllNetworkIps(in *NetworkAddress) *[]net.IP {
 		result = append(result, ip)
 	}
 	return &result
+}
+
+func GetHostName() string {
+	name, err := os.Hostname()
+	if err != nil {
+		log.Println("Error getting hostname. ", err.Error())
+	}
+	return name
 }
