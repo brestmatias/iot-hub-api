@@ -18,14 +18,16 @@ type StationService interface {
 }
 
 type stationService struct {
-	StationRepository repository.StationRepository
-	StationClient     restclient.StationClient
+	StationRepository   repository.StationRepository
+	HubConfigRepository repository.HubConfigRepository
+	StationClient       restclient.StationClient
 }
 
-func NewStationService(stationRepository repository.StationRepository, stationClient restclient.StationClient) StationService {
+func NewStationService(stationRepository repository.StationRepository, hubConfigRepository repository.HubConfigRepository, stationClient restclient.StationClient) StationService {
 	return &stationService{
-		StationRepository: stationRepository,
-		StationClient:     stationClient,
+		StationRepository:   stationRepository,
+		StationClient:       stationClient,
+		HubConfigRepository: hubConfigRepository,
 	}
 }
 
@@ -107,12 +109,15 @@ func (s *stationService) SeekAndSaveOnlineStations(c *gin.Context) *[]model.Stat
 
 func (s *stationService) DoHandshake(c *gin.Context) {
 	method := "DoHandshake"
+	brokerIp := s.GetBrokerAddress()
+	if brokerIp == "" {
+		tracing.Log("[method:%s][result:%+v]No broker Ip is not set", c, method)
+		return
+	}
 	stations := s.StationRepository.FindAll()
-	localNetWorkAddresses, _ := network.GetLocalAddresses()
-	brokerIp := (*localNetWorkAddresses)[0].IP
 	tracing.Log("[method:%s][stations:%+v]Doing Handshake", c, method, stations)
 	for _, station := range *stations {
-		r, err := s.StationClient.SetBroker(c, station.IP, brokerIp.String())
+		r, err := s.StationClient.SetBroker(c, station.IP, brokerIp)
 		if err != nil {
 			tracing.Log("[method:%s][station:%+v]Error Doing handshake %s", c, method, station, err.Error())
 		} else {
@@ -122,4 +127,18 @@ func (s *stationService) DoHandshake(c *gin.Context) {
 	tracing.Log("[method:%s]End Handshake", c, method)
 }
 
-//TODO: IMPLEMENTAR UN HANDSHAKE QUE SINCRONICE A TODAS LAS ESTACIONES CON SU PADRE
+func (s *stationService) GetBrokerAddress() string {
+
+	configs := s.HubConfigRepository.FindAll()
+	for _, config := range *configs {
+		if config.IsMQBroker {
+			return config.Ip
+		}
+	}
+	return ""
+	/*
+		log.Printf("[method:%v] Broker configuration not found in repository ","GetBrokerAddress")
+		localNetWorkAddresses, _ := network.GetLocalAddresses()
+		localIp := (*localNetWorkAddresses)[0].IP
+		return localIp.String()*/
+}

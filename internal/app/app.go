@@ -55,9 +55,9 @@ func buildApp(ctx context.Context) *App {
 	stationRepository := repository.NewStationRepository(mongoClient.Database(configs.Database.DB))
 	hubConfigRepository := repository.NewHubConfigRepository(mongoClient.Database(configs.Database.DB))
 
-	stationController := station.New(stationRepository, stationClient)
+	stationController := station.New(stationRepository, hubConfigRepository, stationClient)
 
-	MapCurrentHostInterfaces(&hubConfigRepository)
+	MapCurrentHostInterfaces(hubConfigRepository)
 
 	return &App{
 		Configs:           configs,

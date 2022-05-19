@@ -11,20 +11,21 @@ import (
 )
 
 type Controller struct {
-	StationRepository repository.StationRepository
-	StationClient     restclient.StationClient
+	StationRepository   repository.StationRepository
+	StationClient       restclient.StationClient
+	HubConfigRepository repository.HubConfigRepository
 }
 
-func New(stationRepository repository.StationRepository, stationClient restclient.StationClient) Controller {
-
+func New(stationRepository repository.StationRepository, hubConfigRepository repository.HubConfigRepository, stationClient restclient.StationClient) Controller {
 	return Controller{
-		StationRepository: stationRepository,
-		StationClient:     stationClient,
+		StationRepository:   stationRepository,
+		StationClient:       stationClient,
+		HubConfigRepository: hubConfigRepository,
 	}
 }
 
 func (c *Controller) DiscoverStations(ginCtx *gin.Context, ctx context.Context) {
-	stationService := NewStationService(c.StationRepository, c.StationClient)
+	stationService := NewStationService(c.StationRepository, c.HubConfigRepository, c.StationClient)
 	sta := stationService.SeekAndSaveOnlineStations(ginCtx)
 	if len(*sta) == 0 {
 		ginCtx.Writer.WriteHeader(http.StatusNoContent)
@@ -34,7 +35,7 @@ func (c *Controller) DiscoverStations(ginCtx *gin.Context, ctx context.Context) 
 	ginCtx.JSON(http.StatusOK, sta)
 }
 func (c *Controller) DoHandshake(ginCtx *gin.Context, ctx context.Context) {
-	stationService := NewStationService(c.StationRepository, c.StationClient)
+	stationService := NewStationService(c.StationRepository, c.HubConfigRepository, c.StationClient)
 	stationService.DoHandshake(ginCtx)
 	ginCtx.Writer.WriteHeader(http.StatusOK)
 }
