@@ -1,10 +1,11 @@
 package app
 
 import (
+	"log"
+
 	"iot-hub-api/internal/network"
 	"iot-hub-api/internal/repository"
 	"iot-hub-api/model"
-	"log"
 )
 
 func MapCurrentHostInterfaces(repo repository.HubConfigRepository) {
