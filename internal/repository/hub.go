@@ -30,8 +30,8 @@ func (*hubConfigRepository) FindAll() *[]model.HubConfig {
 }
 
 func (h *hubConfigRepository) InsertOne(config model.HubConfig) *model.HubConfig {
-	res, err := h.HubConfigCollection.InsertOne(context.Background(), config)
 	config.LastUpdate = primitive.NewDateTimeFromTime(time.Now())
+	res, err := h.HubConfigCollection.InsertOne(context.Background(), config)
 
 	if err != nil {
 		log.Println(err)
