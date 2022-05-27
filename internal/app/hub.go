@@ -10,12 +10,14 @@ import (
 
 func MapCurrentHostInterfaces(repo repository.HubConfigRepository) {
 	hostname := network.GetHostName()
-	log.Println("Hostname:", hostname)
+	log.Println("Local Hostname:", hostname)
 	nets, _ := network.GetLocalAddresses()
-	log.Println("Networks:", nets)
+	log.Println("Local Networks:", nets)
 
-	dbConfigs := repo.FindByHostName(hostname)
+	dbConfigs := repo.FindAll()
+	log.Println("DBInterfaces configs:", dbConfigs)
 
+	log.Println("Merging Local Interfaces With DB")
 	for _, net := range *nets {
 		indx := findHubConfigIndexByNet(dbConfigs, &net)
 		if indx >= 0 {
@@ -27,6 +29,7 @@ func MapCurrentHostInterfaces(repo repository.HubConfigRepository) {
 		} else {
 			cfg := model.HubConfig{
 				HostName:   hostname,
+				Mac: net.Interface.HardwareAddr.String(),
 				Interface:  net.Interface.Name,
 				Ip:         net.IP.String(),
 				IsMQBroker: false,
@@ -41,7 +44,7 @@ func findHubConfigIndexByNet(dbConfigs *[]model.HubConfig, net *network.NetworkA
 		return -1
 	}
 	for i, dbCfg := range *dbConfigs {
-		if dbCfg.Interface == net.Interface.Name {
+		if dbCfg.Mac == net.Interface.HardwareAddr.String() {
 			return i
 		}
 	}

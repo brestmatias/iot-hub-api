@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 	"iot-hub-api/model"
 	"log"
 	"time"
@@ -14,24 +15,34 @@ import (
 
 type HubConfigRepository interface {
 	FindAll() *[]model.HubConfig
-	FindByHostName(hostName string) *[]model.HubConfig
+	FindByField(field string, value string) *[]model.HubConfig
 	InsertOne(model.HubConfig) *model.HubConfig
 	Update(model.HubConfig) (*model.HubConfig, error)
 }
 
 type hubConfigRepository struct {
 	MongoDB             *mongo.Database
-	HubConfigCollection *mongo.Collection
+	Collection *mongo.Collection
 }
 
-// FindAll implements HubConfigRepository
-func (*hubConfigRepository) FindAll() *[]model.HubConfig {
-	panic("unimplemented")
+func (r *hubConfigRepository) FindAll() *[]model.HubConfig {
+	method := "FindAll"
+	cur, err := r.Collection.Find(context.TODO(), bson.D{}, nil)
+	if err != nil {
+		log.Println(fmt.Errorf("[method:%s]Error Getting Results", method), err)
+	}
+	defer cur.Close(context.TODO())
+	var result []model.HubConfig
+	err = cur.All(context.TODO(), &result)
+	if err != nil {
+		log.Println(fmt.Errorf("[method:%s]Error Decoding Results", method), err)
+	}
+	return &result
 }
 
 func (h *hubConfigRepository) InsertOne(config model.HubConfig) *model.HubConfig {
 	config.LastUpdate = primitive.NewDateTimeFromTime(time.Now())
-	res, err := h.HubConfigCollection.InsertOne(context.Background(), config)
+	res, err := h.Collection.InsertOne(context.Background(), config)
 
 	if err != nil {
 		log.Println(err)
@@ -42,7 +53,7 @@ func (h *hubConfigRepository) InsertOne(config model.HubConfig) *model.HubConfig
 }
 
 func (h *hubConfigRepository) Update(config model.HubConfig) (*model.HubConfig, error) {
-	collection := h.HubConfigCollection
+	collection := h.Collection
 	filter := bson.M{"_id": config.DocId}
 	config.LastUpdate = primitive.NewDateTimeFromTime(time.Now())
 
@@ -57,11 +68,10 @@ func (h *hubConfigRepository) Update(config model.HubConfig) (*model.HubConfig, 
 	return &config, err
 }
 
-// FindByHostName implements HubConfigRepository
-func (h *hubConfigRepository) FindByHostName(hostName string) *[]model.HubConfig {
+func (h *hubConfigRepository) FindByField(field string, value string) *[]model.HubConfig {
 	var result []model.HubConfig
-	filter := bson.M{"host_name": hostName}
-	findResult, err := h.HubConfigCollection.Find(context.Background(), filter, nil)
+	filter := bson.M{field: value}
+	findResult, err := h.Collection.Find(context.Background(), filter, nil)
 	if err != nil {
 		log.Println(err)
 	}
@@ -82,6 +92,6 @@ func NewHubConfigRepository(mongodb *mongo.Database) HubConfigRepository {
 	hubConfigCollection := mongodb.Collection("hub_config")
 	return &hubConfigRepository{
 		MongoDB:             mongodb,
-		HubConfigCollection: hubConfigCollection,
+		Collection: hubConfigCollection,
 	}
 }
