@@ -7,14 +7,17 @@ import (
 	"iot-hub-api/model"
 	"iot-hub-api/tracing"
 	"net"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type StationService interface {
 	SeekOnlineStations(*gin.Context) *[]model.Station
 	SeekAndSaveOnlineStations(*gin.Context) *[]model.Station
 	DoHandshake(*gin.Context)
+	DoPing(*gin.Context)
 }
 
 type stationService struct {
@@ -77,6 +80,7 @@ func (s *stationService) SeekOnlineStations(c *gin.Context) *[]model.Station {
 				sta := model.Station{
 					ID:         beaconResponse.ID,
 					IP:         ip.String(),
+					Broker:     beaconResponse.Broker,
 					Interfaces: beaconResponse.Interfaces,
 				}
 				result = append(result, sta)
@@ -115,16 +119,40 @@ func (s *stationService) DoHandshake(c *gin.Context) {
 		return
 	}
 	stations := s.StationRepository.FindAll()
-	tracing.Log("[method:%s][stations:%+v]Doing Handshake", c, method, stations)
 	for _, station := range *stations {
-		r, err := s.StationClient.SetBroker(c, station.IP, brokerIp)
-		if err != nil {
-			tracing.Log("[method:%s][station:%+v]Error Doing handshake %s", c, method, station, err.Error())
-		} else {
-			tracing.Log("[method:%s][result:%+v]Handshake OK", c, method, r)
+		if station.Broker != brokerIp {
+			tracing.Log("[method:%s][station:%+v][ip:%+v]Doing Handshake", c, method, station.ID, station.IP)
+			r, err := s.StationClient.SetBroker(c, station.IP, brokerIp)
+			if err != nil {
+				tracing.Log("[method:%s][station:%+v]Error Doing handshake %s", c, method, station, err.Error())
+				station.LastHandShakeResult = "error"
+			} else {
+				tracing.Log("[method:%s][result:%+v]Handshake OK", c, method, r)
+				station.LastHandShakeResult = "ok"
+				station.LastOkHandShake = primitive.NewDateTimeFromTime(time.Now())
+				station.LastPingStatus = "ok"
+			}
+			station.LastHandShake = primitive.NewDateTimeFromTime(time.Now())
+			s.StationRepository.Update(station)
 		}
 	}
 	tracing.Log("[method:%s]End Handshake", c, method)
+}
+
+func (s *stationService) DoPing(c *gin.Context) {
+	method := "DoPing"
+	stations := s.StationRepository.FindAll()
+	tracing.Log("[method:%s][stations:%+v]Doing", c, method, stations)
+	for _, station := range *stations {
+		beaconResponse, _ := s.StationClient.GetBeacon(c, station.IP)
+		if beaconResponse != nil {
+			station.LastPingStatus = "ok"
+		} else {
+			station.LastPingStatus = "bad"
+		}
+		s.StationRepository.Update(station)
+	}
+	tracing.Log("[method:%s]End", c, method)
 }
 
 func (s *stationService) GetBrokerAddress() string {
