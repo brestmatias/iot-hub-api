@@ -2,8 +2,6 @@ package station
 
 import (
 	"context"
-	"iot-hub-api/internal/repository"
-	"iot-hub-api/internal/restclient"
 	"log"
 	"net/http"
 
@@ -11,22 +9,17 @@ import (
 )
 
 type Controller struct {
-	StationRepository   repository.StationRepository
-	StationClient       restclient.StationClient
-	HubConfigRepository repository.HubConfigRepository
+	StationService StationService
 }
 
-func New(stationRepository repository.StationRepository, hubConfigRepository repository.HubConfigRepository, stationClient restclient.StationClient) Controller {
+func New(stationService StationService) Controller {
 	return Controller{
-		StationRepository:   stationRepository,
-		StationClient:       stationClient,
-		HubConfigRepository: hubConfigRepository,
+		StationService: stationService,
 	}
 }
 
 func (c *Controller) DiscoverStations(ginCtx *gin.Context, ctx context.Context) {
-	stationService := NewStationService(c.StationRepository, c.HubConfigRepository, c.StationClient)
-	sta := stationService.SeekAndSaveOnlineStations(ginCtx)
+	sta := c.StationService.SeekAndSaveOnlineStations(ginCtx)
 	if len(*sta) == 0 {
 		ginCtx.Writer.WriteHeader(http.StatusNoContent)
 		return
@@ -35,7 +28,6 @@ func (c *Controller) DiscoverStations(ginCtx *gin.Context, ctx context.Context) 
 	ginCtx.JSON(http.StatusOK, sta)
 }
 func (c *Controller) DoHandshake(ginCtx *gin.Context, ctx context.Context) {
-	stationService := NewStationService(c.StationRepository, c.HubConfigRepository, c.StationClient)
-	stationService.DoHandshake(ginCtx)
+	c.StationService.DoHandshake(ginCtx)
 	ginCtx.Writer.WriteHeader(http.StatusOK)
 }

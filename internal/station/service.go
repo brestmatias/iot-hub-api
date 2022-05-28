@@ -62,14 +62,14 @@ func (s *stationService) SeekOnlineStations(c *gin.Context) *[]model.Station {
 	var scannedNetworks []string
 	for _, localNetworkAddress := range *localNetWorkAddresses {
 		if networkAlreadyScanned(&scannedNetworks, localNetworkAddress.Net.String()) {
-			tracing.Log("[method:%v][interface_name:%v][ip:%v][net_cidr:%v] Network Already scanned", c, method, localNetworkAddress.Interface.Name, localNetworkAddress.IP, localNetworkAddress.Net.String())
+			// tracing.Log("[method:%v][interface_name:%v][ip:%v][net_cidr:%v] Network Already scanned", c, method, localNetworkAddress.Interface.Name, localNetworkAddress.IP, localNetworkAddress.Net.String())
 			continue
 		}
 		tracing.Log("[method:%v][interface_name:%v][ip:%v][net_cidr:%v] Looking for online stations", c, method, localNetworkAddress.Interface.Name, localNetworkAddress.IP, localNetworkAddress.Net.String())
 		ips := network.GetAllNetworkIps(&localNetworkAddress)
 		for _, ip := range *ips {
 			if shouldDiscardIp(ip, localNetWorkAddresses) {
-				tracing.Log("[method:%v][ip:%v]Discarding IP", c, method, ip)
+				// tracing.Log("[method:%v][ip:%v]Discarding IP", c, method, ip)
 				continue
 			}
 			beaconResponse, _ := s.StationClient.GetBeacon(c, ip.String())
