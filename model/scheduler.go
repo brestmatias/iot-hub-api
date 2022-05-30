@@ -2,14 +2,12 @@ package model
 
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
-type CronTask struct {
-	DocId   primitive.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
-	TaskId  string             `bson:"task_id" json:"task_id,omitempty"`
-	Spec    string             `bson:"spec" json:"spec,omitempty"`
-	Enabled bool               `bson:"enabled" json:"enabled,omitempty"`
-}
-
-type CronFuncDTO struct {
-	Spec string
-	Func func()
+type DispatcherTask struct {
+	DocId       primitive.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
+	StationId   string             `bson:"station_id,omitempty" json:"station_id,omitempty"`
+	InterfaceId string             `bson:"interface_id,omitempty" json:"interface_id,omitempty"`
+	From        string             `bson:"from,omitempty" json:"from,omitempty"`
+	To          string             `bson:"to,omitempty" json:"to,omitempty"`
+	Enabled     bool             `bson:"enabled,omitempty" json:"enabled,omitempty"`
+	Command 	string	`bson:"command,omitempty" json:"command,omitempty"`
 }

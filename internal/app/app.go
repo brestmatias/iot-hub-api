@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"iot-hub-api/internal/config"
 	"iot-hub-api/internal/cron"
+	"iot-hub-api/internal/dispatcher"
+	hub_config "iot-hub-api/internal/hubConfig"
+	"iot-hub-api/internal/mqtt"
 	"iot-hub-api/internal/repository"
 	"iot-hub-api/internal/restclient"
 	"iot-hub-api/internal/station"
@@ -57,7 +60,10 @@ func buildApp(ctx context.Context) *App {
 	hubConfigRepository := repository.NewHubConfigRepository(mongoClient.Database(configs.Database.DB))
 	cronRepository := repository.NewCronRepository(mongoClient.Database(configs.Database.DB))
 
-	stationService := station.NewStationService(stationRepository, hubConfigRepository, stationClient)
+	hubConfigService := hub_config.NewHubConfigService(&hubConfigRepository)
+	mqttService := mqtt.NewMqttService(hubConfigService)
+	dispatcherService := dispatcher.NewDispatcherService(mqttService)
+	stationService := station.NewStationService(stationRepository, hubConfigService, stationClient)
 	cronService := cron.NewCronService(&cronRepository, &stationService)
 
 	stationController := station.New(stationService)

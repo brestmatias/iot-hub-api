@@ -3,6 +3,7 @@ package restclient
 import (
 	"iot-hub-api/model"
 	"iot-hub-api/tracing"
+	"net/http"
 
 	"github.com/brestmatias/golang-restclient/rest"
 	"github.com/gin-gonic/gin"
@@ -10,6 +11,7 @@ import (
 
 type StationClient interface {
 	GetBeacon(c *gin.Context, address string) (*model.BeaconResponse, error)
+	DoPing(c *gin.Context, address string) bool
 	SetBroker(c *gin.Context, stationIP string, value string) (*model.StationPutResponse, error)
 }
 
@@ -40,6 +42,17 @@ func (s *stationClient) GetBeacon(c *gin.Context, address string) (*model.Beacon
 		return nil, err
 	}
 	return &response, nil
+}
+
+func (s *stationClient) DoPing(c *gin.Context, address string) bool {
+	if tracing.VerboseOn(c) {
+		defer tracing.Un(tracing.Trace(c, "DoPing "+address))
+	}
+	r := s.rb.Get(address + "/ping")
+	if r.Err != nil {
+		return false
+	}
+	return r.StatusCode == http.StatusOK
 }
 
 func (s *stationClient) SetBroker(c *gin.Context, stationIP string, value string) (*model.StationPutResponse, error) {

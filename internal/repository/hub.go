@@ -15,7 +15,7 @@ import (
 
 type HubConfigRepository interface {
 	FindAll() *[]model.HubConfig
-	FindByField(field string, value string) *[]model.HubConfig
+	FindByField(field string, value interface{}) *[]model.HubConfig
 	InsertOne(model.HubConfig) *model.HubConfig
 	Update(model.HubConfig) (*model.HubConfig, error)
 }
@@ -68,7 +68,7 @@ func (h *hubConfigRepository) Update(config model.HubConfig) (*model.HubConfig, 
 	return &config, err
 }
 
-func (h *hubConfigRepository) FindByField(field string, value string) *[]model.HubConfig {
+func (h *hubConfigRepository) FindByField(field string, value interface{}) *[]model.HubConfig {
 	var result []model.HubConfig
 	filter := bson.M{field: value}
 	findResult, err := h.Collection.Find(context.Background(), filter, nil)

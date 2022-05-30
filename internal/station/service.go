@@ -1,6 +1,7 @@
 package station
 
 import (
+	hub_config "iot-hub-api/internal/hubConfig"
 	"iot-hub-api/internal/network"
 	"iot-hub-api/internal/repository"
 	"iot-hub-api/internal/restclient"
@@ -21,16 +22,16 @@ type StationService interface {
 }
 
 type stationService struct {
-	StationRepository   repository.StationRepository
-	HubConfigRepository repository.HubConfigRepository
-	StationClient       restclient.StationClient
+	StationRepository repository.StationRepository
+	HubConfigService  *hub_config.HubConfigService
+	StationClient     restclient.StationClient
 }
 
-func NewStationService(stationRepository repository.StationRepository, hubConfigRepository repository.HubConfigRepository, stationClient restclient.StationClient) StationService {
+func NewStationService(stationRepository repository.StationRepository, hubConfigService *hub_config.HubConfigService, stationClient restclient.StationClient) StationService {
 	return &stationService{
-		StationRepository:   stationRepository,
-		StationClient:       stationClient,
-		HubConfigRepository: hubConfigRepository,
+		StationRepository: stationRepository,
+		StationClient:     stationClient,
+		HubConfigService:  hubConfigService,
 	}
 }
 
@@ -113,7 +114,7 @@ func (s *stationService) SeekAndSaveOnlineStations(c *gin.Context) *[]model.Stat
 
 func (s *stationService) DoHandshake(c *gin.Context) {
 	method := "DoHandshake"
-	brokerIp := s.GetBrokerAddress()
+	brokerIp := s.HubConfigService.GetBrokerAddress()
 	if brokerIp == "" {
 		tracing.Log("[method:%s][result:%+v]No broker Ip is not set", c, method)
 		return
@@ -144,8 +145,8 @@ func (s *stationService) DoPing(c *gin.Context) {
 	stations := s.StationRepository.FindAll()
 	tracing.Log("[method:%s][stations:%+v]Doing", c, method, stations)
 	for _, station := range *stations {
-		beaconResponse, _ := s.StationClient.GetBeacon(c, station.IP)
-		if beaconResponse != nil {
+		response := s.StationClient.DoPing(c, station.IP)
+		if response {
 			station.LastPingStatus = "ok"
 		} else {
 			station.LastPingStatus = "bad"
@@ -153,20 +154,4 @@ func (s *stationService) DoPing(c *gin.Context) {
 		s.StationRepository.Update(station)
 	}
 	tracing.Log("[method:%s]End", c, method)
-}
-
-func (s *stationService) GetBrokerAddress() string {
-
-	configs := s.HubConfigRepository.FindAll()
-	for _, config := range *configs {
-		if config.IsMQBroker {
-			return config.Ip
-		}
-	}
-	return ""
-	/*
-		log.Printf("[method:%v] Broker configuration not found in repository ","GetBrokerAddress")
-		localNetWorkAddresses, _ := network.GetLocalAddresses()
-		localIp := (*localNetWorkAddresses)[0].IP
-		return localIp.String()*/
 }
