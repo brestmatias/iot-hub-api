@@ -2,6 +2,7 @@ package cron
 
 import (
 	cron_tasks "iot-hub-api/internal/cron/tasks"
+	"iot-hub-api/internal/dispatcher"
 	"iot-hub-api/internal/repository"
 	"iot-hub-api/internal/station"
 	"iot-hub-api/model"
@@ -9,14 +10,16 @@ import (
 )
 
 type CronService struct {
-	CronRepository *repository.CronRepository
-	StationService *station.StationService
+	CronRepository    *repository.CronRepository
+	StationService    *station.StationService
+	DispatcherService *dispatcher.DispatcherService
 }
 
-func NewCronService(cronRepository *repository.CronRepository, stationService *station.StationService) CronService {
+func NewCronService(cronRepository *repository.CronRepository, stationService *station.StationService, dispatcherService *dispatcher.DispatcherService) CronService {
 	return CronService{
-		CronRepository: cronRepository,
-		StationService: stationService,
+		CronRepository:    cronRepository,
+		StationService:    stationService,
+		DispatcherService: dispatcherService,
 	}
 }
 
@@ -32,6 +35,8 @@ func (s CronService) BuildTasks() *[]model.CronFuncDTO {
 			result = append(result, model.CronFuncDTO{Spec: t.Spec, Func: cron_tasks.NewHandshakeTask(s.StationService, &t)})
 		case "ping_stations":
 			result = append(result, model.CronFuncDTO{Spec: t.Spec, Func: cron_tasks.NewPingTask(s.StationService, &t)})
+		case "execute_dispatcher":
+			result = append(result, model.CronFuncDTO{Spec: t.Spec, Func: cron_tasks.NewExecuteDispatcherTask(s.DispatcherService, &t)})
 		default:
 			log.Println("Build Cron Task", t.TaskId, "unimplemented!!!!")
 		}

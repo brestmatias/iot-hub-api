@@ -59,17 +59,20 @@ func buildApp(ctx context.Context) *App {
 	stationRepository := repository.NewStationRepository(mongoClient.Database(configs.Database.DB))
 	hubConfigRepository := repository.NewHubConfigRepository(mongoClient.Database(configs.Database.DB))
 	cronRepository := repository.NewCronRepository(mongoClient.Database(configs.Database.DB))
+	dispatcherRepository := repository.NewDispatcherRepository(mongoClient.Database(configs.Database.DB))
 
 	hubConfigService := hub_config.NewHubConfigService(&hubConfigRepository)
 	mqttService := mqtt.NewMqttService(hubConfigService)
-	dispatcherService := dispatcher.NewDispatcherService(mqttService)
+	dispatcherService := dispatcher.NewDispatcherService(mqttService, &dispatcherRepository)
 	stationService := station.NewStationService(stationRepository, hubConfigService, stationClient)
-	cronService := cron.NewCronService(&cronRepository, &stationService)
+	cronService := cron.NewCronService(&cronRepository, &stationService, dispatcherService)
 
 	stationController := station.New(stationService)
 
 	MapCurrentHostInterfaces(hubConfigRepository)
 
+	//Cargo Tareas del dispatcher
+	dispatcherService.LoadTasks()
 	//Inicio Cron
 	cron.New(&stationService, &cronService)
 

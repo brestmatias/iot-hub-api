@@ -1,8 +1,10 @@
 package mqtt
 
 import (
+	"encoding/json"
 	"fmt"
 	hub_config "iot-hub-api/internal/hubConfig"
+	"log"
 	"time"
 
 	MQTT "github.com/eclipse/paho.mqtt.golang"
@@ -33,12 +35,18 @@ func (m *MqttService) buildClient() {
 	m.Client = MQTT.NewClient(o)
 }
 
-func(m *MqttService) PublishCommand (uuid string, topic string ) {
+func (m *MqttService) PublishCommand(topic string, message interface{}) bool {
+	method:="PublishCommand"
 	if token := m.Client.Connect(); token.Wait() && token.Error() != nil {
-		panic(token.Error())
+		log.Printf("[method:{%v}] %v",method,token.Error().Error())
+		return false
 	}
-	token := m.Client.Publish("commands/STA01010", 0, false, messageJSON)
+
+	messageJSON, _ := json.Marshal(message)
+	// TODO!!! implementar un hash o algun mecanismo para evitar inundar con el mismo req en un intervalo de tiempo
+	token := m.Client.Publish(topic, 0, false, messageJSON)
 	token.Wait()
 	m.Client.Disconnect(250)
-}
 
+	return true
+}
