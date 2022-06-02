@@ -29,5 +29,5 @@ func (t TimerTask) Execute() {
 	}
 
 	topic := fmt.Sprintf("command/%s", t.task.StationId)
-	t.MqttService.PublishCommand(topic, body)
+	t.MqttService.SpacedPublishCommand(topic, body)
 }

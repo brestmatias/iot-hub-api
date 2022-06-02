@@ -21,3 +21,6 @@ slow-station-rest-client:
  timeout:       200
  disableCache:   true
  disableTimeout: false
+
+mqtt:
+  minInterval: 30s

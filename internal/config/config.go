@@ -3,7 +3,7 @@ package config
 import (
 	"log"
 	"os"
-
+	
 	"gopkg.in/yaml.v2"
 )
 
@@ -31,6 +31,9 @@ type ConfigFile struct {
 		DisableCache   bool   `yaml:"disableCache"`
 		DisableTimeout bool   `yaml:"disableTimeout"`
 	} `yaml:"slow-station-rest-client"`
+	Mqtt struct {
+		MinInterval string `yaml:"minInterval"`
+	} `yaml:"mqtt"`
 }
 
 func GetConfigs() *ConfigFile {
