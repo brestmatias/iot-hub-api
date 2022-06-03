@@ -1,6 +1,7 @@
 package dispatcher
 
 import (
+	"iot-hub-api/internal/config"
 	"iot-hub-api/internal/dispatcher/taskExecutor"
 	"iot-hub-api/internal/mqtt"
 	"iot-hub-api/internal/repository"
@@ -12,12 +13,14 @@ type DispatcherService struct {
 	MqttService          *mqtt.MqttService
 	DispatcherRepository *repository.DispatcherRepository
 	Tasks                *[]model.DispatcherTask
+	Config               *config.ConfigFile
 }
 
-func NewDispatcherService(mqttService *mqtt.MqttService, dispatcherRepository *repository.DispatcherRepository) *DispatcherService {
+func NewDispatcherService(mqttService *mqtt.MqttService, dispatcherRepository *repository.DispatcherRepository, config *config.ConfigFile) *DispatcherService {
 	return &DispatcherService{
 		MqttService:          mqttService,
 		DispatcherRepository: dispatcherRepository,
+		Config:               config,
 	}
 }
 
@@ -42,10 +45,10 @@ func (d DispatcherService) Execute(taskType model.DispatcherTaskType) {
 }
 
 func (d DispatcherService) executeTask(task model.DispatcherTask) {
-	executor:=taskExecutor.NewExecutor(&task, d.MqttService)
-	if executor==nil {
+	executor := taskExecutor.NewExecutor(&task, d.MqttService, d.Config)
+	if executor == nil {
 		log.Println("Executor for ", task.Type, " not implemented!!!!!")
 		return
-	} 
+	}
 	executor.Execute()
 }

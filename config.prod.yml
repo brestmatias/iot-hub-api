@@ -24,3 +24,4 @@ slow-station-rest-client:
 
 mqtt:
   minInterval: 30s
+  stationCommandTopic: "command/%s"

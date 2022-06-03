@@ -3,7 +3,7 @@ package config
 import (
 	"log"
 	"os"
-	
+
 	"gopkg.in/yaml.v2"
 )
 
@@ -32,7 +32,8 @@ type ConfigFile struct {
 		DisableTimeout bool   `yaml:"disableTimeout"`
 	} `yaml:"slow-station-rest-client"`
 	Mqtt struct {
-		MinInterval string `yaml:"minInterval"`
+		MinInterval         string `yaml:"minInterval"` // Min interval to send same previous menssage 
+		StationCommandTopic string `yaml:"stationCommandTopic"`
 	} `yaml:"mqtt"`
 }
 

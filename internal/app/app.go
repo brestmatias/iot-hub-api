@@ -63,7 +63,7 @@ func buildApp(ctx context.Context) *App {
 
 	hubConfigService := hub_config.NewHubConfigService(&hubConfigRepository)
 	mqttService := mqtt.NewMqttService(hubConfigService, configs)
-	dispatcherService := dispatcher.NewDispatcherService(mqttService, &dispatcherRepository)
+	dispatcherService := dispatcher.NewDispatcherService(mqttService, &dispatcherRepository, configs)
 	stationService := station.NewStationService(stationRepository, hubConfigService, stationClient)
 	cronService := cron.NewCronService(&cronRepository, &stationService, dispatcherService)
 
