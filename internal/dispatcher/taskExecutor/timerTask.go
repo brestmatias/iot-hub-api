@@ -9,6 +9,8 @@ import (
 	"time"
 )
 
+const HMSLayout = "15:04:05"
+
 type TimerTask struct {
 	MqttService *mqtt.MqttService
 	task        *model.DispatcherTask
@@ -32,18 +34,22 @@ func (t TimerTask) Execute() {
 		return
 	}
 
-	time, err := time.Parse("15:04:05", t.task.From)
+	from, err := time.Parse(HMSLayout, t.task.From)
 	if err != nil {
-			log.Printf("[doc_id:%v]Error parsing 'from'", t.task.DocId)
-
+		log.Printf("[doc_id:%v]Error parsing 'from'", t.task.DocId)
 		return
 	}
-	time.Location()
-	h,m,s:=time.Clock()
 
-	log.Println(h,m,s, duration)
+	//h,m,s:=from.Clock()
+	//log.Println(h,m,s, duration.Seconds())
 
 	//TODO IMPLEMEMTAR TIMER TASK!!!!
+
+	if shouldBeOn(from, duration) {
+		log.Println("ONNNNN")
+	} else {
+		log.Println("OFFFFFF")
+	}
 
 	body := model.StationCommandBody{
 		Interface: t.task.InterfaceId,
@@ -53,4 +59,15 @@ func (t TimerTask) Execute() {
 
 	topic := fmt.Sprintf(t.Config.Mqtt.StationCommandTopic, t.task.StationId)
 	t.MqttService.SpacedPublishCommand(topic, body)
+}
+
+func shouldBeOn(from time.Time, duration time.Duration) bool {
+	check, _ := time.Parse(HMSLayout, time.Now().Format(HMSLayout))
+	return isInTimeSpan(from, duration, check)
+}
+
+func isInTimeSpan(from time.Time, duration time.Duration, timeToCheck time.Time) bool {
+	end := from.Add(duration)
+	log.Println("End:", end)
+	return timeToCheck.After(from) && (timeToCheck.Before(end)|| timeToCheck.Equal(end))
 }
