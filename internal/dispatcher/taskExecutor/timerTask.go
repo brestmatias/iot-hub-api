@@ -28,24 +28,7 @@ func newTimerTask(task *model.DispatcherTask, mqttService *mqtt.MqttService, con
 func (t TimerTask) Execute() {
 	log.Printf("[doc_id:%v]Executing Dispatcher TimerTask", t.task.DocId)
 
-	duration, err := time.ParseDuration(t.task.Duration)
-	if err != nil {
-		log.Printf("[doc_id:%v]Error parsing duration", t.task.DocId)
-		return
-	}
-
-	from, err := time.Parse(HMSLayout, t.task.From)
-	if err != nil {
-		log.Printf("[doc_id:%v]Error parsing 'from'", t.task.DocId)
-		return
-	}
-
-	//h,m,s:=from.Clock()
-	//log.Println(h,m,s, duration.Seconds())
-
-	//TODO IMPLEMEMTAR TIMER TASK!!!!
-
-	if shouldBeOn(from, duration) {
+	if t.shouldBeOn() {
 		log.Println("ONNNNN")
 	} else {
 		log.Println("OFFFFFF")
@@ -61,13 +44,26 @@ func (t TimerTask) Execute() {
 	t.MqttService.SpacedPublishCommand(topic, body)
 }
 
-func shouldBeOn(from time.Time, duration time.Duration) bool {
+func (t TimerTask) shouldBeOn() bool {
+	duration, err := time.ParseDuration(t.task.Duration)
+	if err != nil {
+		log.Printf("[doc_id:%v]Error parsing duration", t.task.DocId)
+		return false
+	}
+
+	from, err := time.Parse(HMSLayout, t.task.From)
+	if err != nil {
+		log.Printf("[doc_id:%v]Error parsing 'from'", t.task.DocId)
+		return false
+	}
+
 	check, _ := time.Parse(HMSLayout, time.Now().Format(HMSLayout))
-	return isInTimeSpan(from, duration, check)
+	to, _ := time.Parse(HMSLayout, from.Add(duration).Format(HMSLayout))
+
+	return isInTimeSpan(from, to, check)
 }
 
-func isInTimeSpan(from time.Time, duration time.Duration, timeToCheck time.Time) bool {
-	end := from.Add(duration)
-	log.Println("End:", end)
-	return timeToCheck.After(from) && (timeToCheck.Before(end)|| timeToCheck.Equal(end))
+func isInTimeSpan(from time.Time, to time.Time, check time.Time) bool {
+	return (!from.After(to) && (!from.After(check) && !to.Before(check))) ||
+		(from.After(to) && !(from.After(check) && to.Before(check)))
 }
