@@ -27,19 +27,16 @@ func newTimerTask(task *model.DispatcherTask, mqttService *mqtt.MqttService, con
 
 func (t TimerTask) Execute() {
 	log.Printf("[doc_id:%v]Executing Dispatcher TimerTask", t.task.DocId)
-
-	if t.shouldBeOn() {
-		log.Println("ONNNNN")
-	} else {
-		log.Println("OFFFFFF")
-	}
-
 	body := model.StationCommandBody{
 		Interface: t.task.InterfaceId,
-		Value:     1,
-		Forced:    false,
+		Value: func() int {
+			if t.shouldBeOn() {
+				return 1
+			}
+			return 0
+		}(),
+		Forced: false,
 	}
-
 	topic := fmt.Sprintf(t.Config.Mqtt.StationCommandTopic, t.task.StationId)
 	t.MqttService.SpacedPublishCommand(topic, body)
 }

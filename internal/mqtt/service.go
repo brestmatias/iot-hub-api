@@ -33,10 +33,13 @@ func NewMqttService(hubConfigService *hub_config.HubConfigService, configs *conf
 		MinInterval:      minInterval,
 	}
 	service.buildClient()
+	service.subscribe()
 	return &service
 }
 
 func (m *MqttService) buildClient() {
+	method := "buildClient"
+
 	brokerIp := m.HubConfigService.GetBrokerAddress()
 	o := MQTT.NewClientOptions()
 	o.AddBroker(fmt.Sprintf("tcp://%v:1883", brokerIp))
@@ -45,6 +48,9 @@ func (m *MqttService) buildClient() {
 	o.SetPingTimeout(1 * time.Second)
 
 	m.Client = MQTT.NewClient(o)
+	if token := m.Client.Connect(); token.Wait() && token.Error() != nil {
+		log.Printf("[method:%v] %v", method, token.Error().Error())
+	}
 }
 
 /*
@@ -60,14 +66,9 @@ func (m *MqttService) SpacedPublishCommand(topic string, message interface{}) bo
 	}
 
 	messageJSON, _ := json.Marshal(message)
-	if token := m.Client.Connect(); token.Wait() && token.Error() != nil {
-		log.Printf("[method:%v] %v", method, token.Error().Error())
-		return false
-	}
 	token := m.Client.Publish(topic, 0, false, messageJSON)
 	log.Printf("[method:%v][topic:%v] Command Published", method, topic)
 	token.Wait()
-	m.Client.Disconnect(250)
 
 	return true
 }
@@ -124,4 +125,10 @@ func (m *MqttService) PublishCommand(topic string, message interface{}) bool {
 	m.Client.Disconnect(250)
 
 	return true
+}
+
+func (m *MqttService) subscribe() {
+	if token := m.Client.Subscribe(NewStationNewsConsumer()); token.Wait() && token.Error() != nil {
+		log.Println("Error subscribing to station/news", token.Error())
+	}
 }

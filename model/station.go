@@ -33,3 +33,10 @@ type StationCommandBody struct {
 	Value     int    `json:"value,omitempty"`
 	Forced    bool   `json:"forced,omitempty"`
 }
+
+type StationNewsBody struct {
+	StationId string `json:"station_id"`
+	Interface string `json:"interface,omitempty"`
+	Value     int    `json:"value,omitempty"`
+	Forced    bool   `json:"forced,omitempty"`
+}
