@@ -30,8 +30,9 @@ const logo = `
 ╚═╝ ╚═════╝    ╚═╝       ╚═╝  ╚═╝ ╚═════╝ ╚═════╝     ╚═╝  ╚═╝╚═╝     ╚═╝`
 
 type App struct {
-	Configs           *config.ConfigFile
-	StationController *station.Controller
+	Configs              *config.ConfigFile
+	StationController    *station.Controller
+	DispatcherController *dispatcher.Controller
 }
 
 func Start() {
@@ -68,6 +69,7 @@ func buildApp(ctx context.Context) *App {
 	cronService := cron.NewCronService(&cronRepository, &stationService, dispatcherService)
 
 	stationController := station.New(stationService)
+	dispatcherController := dispatcher.NewController(dispatcherService)
 
 	MapCurrentHostInterfaces(hubConfigRepository)
 
@@ -77,8 +79,9 @@ func buildApp(ctx context.Context) *App {
 	cron.New(&stationService, &cronService)
 
 	return &App{
-		Configs:           configs,
-		StationController: &stationController,
+		Configs:              configs,
+		StationController:    &stationController,
+		DispatcherController: &dispatcherController,
 	}
 }
 

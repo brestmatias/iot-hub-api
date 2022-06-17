@@ -27,13 +27,22 @@ func newTimerTask(task *model.DispatcherTask, mqttService *mqtt.MqttService, con
 
 func (t TimerTask) Execute() {
 	log.Printf("[doc_id:%v]Executing Dispatcher TimerTask", t.task.DocId)
+	onValue := 1
+	if t.task.Options.OnValue != nil {
+		onValue = *t.task.Options.OnValue
+	}
+	offValue := 0
+	if t.task.Options.OffValue != nil {
+		offValue = *t.task.Options.OffValue
+	}
+
 	body := model.StationCommandBody{
 		Interface: t.task.InterfaceId,
 		Value: func() int {
 			if t.shouldBeOn() {
-				return 1
+				return onValue
 			}
-			return 0
+			return offValue
 		}(),
 		Forced: false,
 	}
