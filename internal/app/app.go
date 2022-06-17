@@ -81,7 +81,7 @@ func buildApp(ctx context.Context) *App {
 	return &App{
 		Configs:              configs,
 		StationController:    &stationController,
-		DispatcherController: &dispatcherController,
+		DispatcherController: dispatcherController,
 	}
 }
 

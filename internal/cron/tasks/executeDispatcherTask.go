@@ -7,13 +7,13 @@ import (
 )
 
 type ExecuteDispatcherTask struct {
-	DispatcherService dispatcher.DispatcherService
+	DispatcherService *dispatcher.DispatcherService
 	DBConfig          model.CronTask
 }
 
 func NewExecuteDispatcherTask(dispatcherService *dispatcher.DispatcherService, config *model.CronTask) func() {
 	task := ExecuteDispatcherTask{
-		DispatcherService: *dispatcherService,
+		DispatcherService: dispatcherService,
 		DBConfig:          *config,
 	}
 	return task.execute

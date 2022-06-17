@@ -26,7 +26,7 @@ func newTimerTask(task *model.DispatcherTask, mqttService *mqtt.MqttService, con
 }
 
 func (t TimerTask) Execute() {
-	log.Printf("[doc_id:%v]Executing Dispatcher TimerTask", t.task.DocId)
+	log.Printf("[doc_id:%v]Executing Dispatcher TimerTask %v", t.task.DocId,t.task.Duration)
 	onValue := 1
 	if t.task.Options.OnValue != nil {
 		onValue = *t.task.Options.OnValue

@@ -29,7 +29,8 @@ func NewDispatcherService(mqttService *mqtt.MqttService, dispatcherRepository *r
 */
 func (d *DispatcherService) LoadTasks() {
 	// TODO hacer que arme un mapa [taskType, []tasks]
-	d.Tasks = (*d.DispatcherRepository).FindByField("enabled", true)
+	d.Tasks=(*d.DispatcherRepository).FindByField("enabled", true)
+	log.Println("hola",d.Tasks)
 }
 
 /*
