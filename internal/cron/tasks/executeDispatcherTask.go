@@ -23,7 +23,6 @@ func (t *ExecuteDispatcherTask) execute() {
 	log.Println("⏲️ ⏲️ Executing Cron Task: ", t.DBConfig.TaskId, "(", t.DBConfig.DocId.String(), ") ⏲️ ⏲️")
 	for _, i := range model.DispatcherTaskTypes {
 		t.DispatcherService.Execute(i)
-		t.DispatcherService.Execute(i)
 	}
 
 }
