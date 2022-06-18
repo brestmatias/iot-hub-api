@@ -10,17 +10,19 @@ import (
 )
 
 type DispatcherService struct {
-	MqttService          *mqtt.MqttService
-	DispatcherRepository *repository.DispatcherRepository
-	Tasks                *[]model.DispatcherTask
-	Config               *config.ConfigFile
+	MqttService                   *mqtt.MqttService
+	DispatcherRepository          *repository.DispatcherRepository
+	InterfaceLastStatusRepository *repository.InterfaceLastStatusRepository
+	Tasks                         *[]model.DispatcherTask
+	Config                        *config.ConfigFile
 }
 
-func NewDispatcherService(mqttService *mqtt.MqttService, dispatcherRepository *repository.DispatcherRepository, config *config.ConfigFile) *DispatcherService {
+func NewDispatcherService(mqttService *mqtt.MqttService, dispatcherRepository *repository.DispatcherRepository, interfaceLastStatusRepository *repository.InterfaceLastStatusRepository, config *config.ConfigFile) *DispatcherService {
 	return &DispatcherService{
-		MqttService:          mqttService,
-		DispatcherRepository: dispatcherRepository,
-		Config:               config,
+		MqttService:                   mqttService,
+		DispatcherRepository:          dispatcherRepository,
+		InterfaceLastStatusRepository: interfaceLastStatusRepository,
+		Config:                        config,
 	}
 }
 
@@ -29,8 +31,7 @@ func NewDispatcherService(mqttService *mqtt.MqttService, dispatcherRepository *r
 */
 func (d *DispatcherService) LoadTasks() {
 	// TODO hacer que arme un mapa [taskType, []tasks]
-	d.Tasks=(*d.DispatcherRepository).FindByField("enabled", true)
-	log.Println("hola",d.Tasks)
+	d.Tasks = (*d.DispatcherRepository).FindByField("enabled", true)
 }
 
 /*
@@ -46,10 +47,15 @@ func (d DispatcherService) Execute(taskType model.DispatcherTaskType) {
 }
 
 func (d DispatcherService) executeTask(task model.DispatcherTask) {
-	executor := taskExecutor.NewExecutor(&task, d.MqttService, d.Config)
+	executor := taskExecutor.NewExecutor(&task, d.MqttService, d.Config, d.updateIntefaceLastStatus)
 	if executor == nil {
 		log.Println("Executor for ", task.Type, " not implemented!!!!!")
 		return
 	}
 	executor.Execute()
+}
+
+func (d DispatcherService) updateIntefaceLastStatus(stationId string, interfaceId string, value int) {
+	//TODO ver de manejar una cache para no estar enviando al repo al pedo
+	(*d.InterfaceLastStatusRepository).UpsertDispatcherStatus(stationId,interfaceId,value)
 }

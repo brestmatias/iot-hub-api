@@ -12,21 +12,23 @@ import (
 const HMSLayout = "15:04:05"
 
 type TimerTask struct {
-	MqttService *mqtt.MqttService
-	task        *model.DispatcherTask
-	Config      *config.ConfigFile
+	MqttService               *mqtt.MqttService
+	task                      *model.DispatcherTask
+	Config                    *config.ConfigFile
+	InterfaceLastValueUpdater model.InterfaceLastValueUpdater
 }
 
-func newTimerTask(task *model.DispatcherTask, mqttService *mqtt.MqttService, config *config.ConfigFile) *TimerTask {
+func newTimerTask(task *model.DispatcherTask, mqttService *mqtt.MqttService, config *config.ConfigFile, v model.InterfaceLastValueUpdater) *TimerTask {
 	return &TimerTask{
-		task:        task,
-		MqttService: mqttService,
-		Config:      config,
+		task:                      task,
+		MqttService:               mqttService,
+		Config:                    config,
+		InterfaceLastValueUpdater: v,
 	}
 }
 
 func (t TimerTask) Execute() {
-	log.Printf("[doc_id:%v]Executing Dispatcher TimerTask %v", t.task.DocId,t.task.Duration)
+	log.Printf("[doc_id:%v]Executing Dispatcher TimerTask %v", t.task.DocId, t.task.Duration)
 	onValue := 1
 	if t.task.Options.OnValue != nil {
 		onValue = *t.task.Options.OnValue
@@ -36,18 +38,20 @@ func (t TimerTask) Execute() {
 		offValue = *t.task.Options.OffValue
 	}
 
+	value := func() int {
+		if t.shouldBeOn() {
+			return onValue
+		}
+		return offValue
+	}()
+
 	body := model.StationCommandBody{
 		Interface: t.task.InterfaceId,
-		Value: func() int {
-			if t.shouldBeOn() {
-				return onValue
-			}
-			return offValue
-		}(),
-		Forced: false,
+		Value:     value,
 	}
 	topic := fmt.Sprintf(t.Config.Mqtt.StationCommandTopic, t.task.StationId)
 	t.MqttService.SpacedPublishCommand(topic, body)
+	t.InterfaceLastValueUpdater(t.task.StationId, t.task.InterfaceId, value)
 }
 
 func (t TimerTask) shouldBeOn() bool {

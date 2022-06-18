@@ -28,6 +28,16 @@ type Station struct {
 	LastPingStatus      string             `bson:"last_ping_status" json:"last_ping_status"`
 }
 
+type InterfaceLastStatus struct {
+	DocId           primitive.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
+	StationID       string             `bson:"station_id" json:"station_id"`
+	IntefaceID      string             `bson:"interface_id" json:"interface_id"`
+	DispatcherValue int                `bson:"dispatcher_value" json:"dispatcher_value"`
+	ReportedValue   int                `bson:"reported_value" json:"reported_value"`
+	LastUpdate      primitive.DateTime `bson:"last_update" json:"last_update"`
+	LastReport      primitive.DateTime `bson:"last_report" json:"last_report"`
+}
+
 type StationCommandBody struct {
 	Interface string `json:"interface,omitempty"`
 	Value     int    `json:"value,omitempty"`
@@ -35,8 +45,12 @@ type StationCommandBody struct {
 }
 
 type StationNewsBody struct {
-	StationId string `json:"station_id"`
-	Interface string `json:"interface,omitempty"`
-	Value     int    `json:"value,omitempty"`
-	Forced    bool   `json:"forced,omitempty"`
+	Id         string                           `json:"id"`
+	Status     string                           `json:"status,omitempty"`
+	Interfaces []StationNewsInterfaceStatusBody `json:"interfaces,omitempty"`
+}
+
+type StationNewsInterfaceStatusBody struct {
+	Id    string `json:"id"`
+	Value int    `json:"value,omitempty"`
 }

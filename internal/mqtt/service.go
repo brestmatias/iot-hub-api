@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"iot-hub-api/internal/config"
 	hub_config "iot-hub-api/internal/hubConfig"
+	"iot-hub-api/internal/repository"
 	"log"
 	"time"
 
@@ -18,6 +19,7 @@ type MqttService struct {
 	Client           MQTT.Client
 	HubConfigService *hub_config.HubConfigService
 	SentCommands     []CommandHash
+	InterfaceLastStatusRepository *repository.InterfaceLastStatusRepository
 }
 
 type CommandHash struct {
@@ -26,11 +28,12 @@ type CommandHash struct {
 	LastSent time.Time
 }
 
-func NewMqttService(hubConfigService *hub_config.HubConfigService, configs *config.ConfigFile) *MqttService {
+func NewMqttService(hubConfigService *hub_config.HubConfigService, configs *config.ConfigFile, interfaceLastStatusRepository *repository.InterfaceLastStatusRepository) *MqttService {
 	minInterval, _ := time.ParseDuration(config.GetConfigs().Mqtt.MinInterval)
 	service := MqttService{
 		HubConfigService: hubConfigService,
 		MinInterval:      minInterval,
+		InterfaceLastStatusRepository: interfaceLastStatusRepository,
 	}
 	service.buildClient()
 	service.subscribe()
@@ -128,7 +131,7 @@ func (m *MqttService) PublishCommand(topic string, message interface{}) bool {
 }
 
 func (m *MqttService) subscribe() {
-	if token := m.Client.Subscribe(NewStationNewsConsumer()); token.Wait() && token.Error() != nil {
+	if token := m.Client.Subscribe(NewStationNewsConsumer(m.InterfaceLastStatusRepository)); token.Wait() && token.Error() != nil {
 		log.Println("Error subscribing to station/news", token.Error())
 	}
 }

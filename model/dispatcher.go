@@ -16,6 +16,8 @@ var DispatcherTaskTypes = []DispatcherTaskType{
 	ConditionalDispatcherTask,
 }
 
+type InterfaceLastValueUpdater func(stationId string, interfaceId string, value int)
+
 type DispatcherTask struct {
 	DocId       primitive.ObjectID    `bson:"_id,omitempty" json:"_id,omitempty"`
 	Type        DispatcherTaskType    `bson:"type,omitempty" json:"type,omitempty"` // DispatcherTaskType

@@ -8,16 +8,18 @@ import (
 )
 
 type ConditionalTask struct {
-	MqttService *mqtt.MqttService
-	task        *model.DispatcherTask
-	Config      *config.ConfigFile
+	MqttService               *mqtt.MqttService
+	task                      *model.DispatcherTask
+	Config                    *config.ConfigFile
+	InterfaceLastValueUpdater model.InterfaceLastValueUpdater
 }
 
-func newConditionalTask(task *model.DispatcherTask, mqttService *mqtt.MqttService, config *config.ConfigFile) *ConditionalTask {
+func newConditionalTask(task *model.DispatcherTask, mqttService *mqtt.MqttService, config *config.ConfigFile, v model.InterfaceLastValueUpdater) *ConditionalTask {
 	return &ConditionalTask{
-		task:        task,
-		MqttService: mqttService,
-		Config:      config,
+		task:                      task,
+		MqttService:               mqttService,
+		Config:                    config,
+		InterfaceLastValueUpdater: v,
 	}
 }
 

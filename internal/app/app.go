@@ -61,10 +61,11 @@ func buildApp(ctx context.Context) *App {
 	hubConfigRepository := repository.NewHubConfigRepository(mongoClient.Database(configs.Database.DB))
 	cronRepository := repository.NewCronRepository(mongoClient.Database(configs.Database.DB))
 	dispatcherRepository := repository.NewDispatcherRepository(mongoClient.Database(configs.Database.DB))
+	interfaceLastStatusRepository := repository.NewInterfaceLastStatusRepository(mongoClient.Database(configs.Database.DB))
 
 	hubConfigService := hub_config.NewHubConfigService(&hubConfigRepository)
-	mqttService := mqtt.NewMqttService(hubConfigService, configs)
-	dispatcherService := dispatcher.NewDispatcherService(mqttService, &dispatcherRepository, configs)
+	mqttService := mqtt.NewMqttService(hubConfigService, configs, &interfaceLastStatusRepository)
+	dispatcherService := dispatcher.NewDispatcherService(mqttService, &dispatcherRepository, &interfaceLastStatusRepository, configs)
 	stationService := station.NewStationService(stationRepository, hubConfigService, stationClient)
 	cronService := cron.NewCronService(&cronRepository, &stationService, dispatcherService)
 
