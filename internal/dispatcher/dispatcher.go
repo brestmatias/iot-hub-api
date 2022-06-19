@@ -32,6 +32,9 @@ func NewDispatcherService(mqttService *mqtt.MqttService, dispatcherRepository *r
 func (d *DispatcherService) LoadTasks() {
 	// TODO hacer que arme un mapa [taskType, []tasks]
 	d.Tasks = (*d.DispatcherRepository).FindByField("enabled", true)
+	for _, i := range *d.Tasks {
+		log.Printf("👷👷[task_type:%s][from:%v][duration:%v]Dispatcher task configured\n", i.Type, i.From, i.Duration)
+	}
 }
 
 /*
@@ -57,5 +60,5 @@ func (d DispatcherService) executeTask(task model.DispatcherTask) {
 
 func (d DispatcherService) updateIntefaceLastStatus(stationId string, interfaceId string, value int) {
 	//TODO ver de manejar una cache para no estar enviando al repo al pedo
-	(*d.InterfaceLastStatusRepository).UpsertDispatcherStatus(stationId,interfaceId,value)
+	(*d.InterfaceLastStatusRepository).UpsertDispatcherStatus(stationId, interfaceId, value)
 }

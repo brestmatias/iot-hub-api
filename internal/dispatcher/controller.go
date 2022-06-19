@@ -20,6 +20,6 @@ func NewController(dispatcherService *DispatcherService) *Controller {
 
 func (c Controller) ReloadTasks(ginCtx *gin.Context, ctx context.Context) {
 	c.DispatcherService.LoadTasks()
-	log.Println("[method:ReloadTasks]Suscessfull ")
+	log.Println("[method:ReloadTasks]👷 👷 👷 Suscessfull ")
 	ginCtx.Writer.WriteHeader(http.StatusOK)
 }

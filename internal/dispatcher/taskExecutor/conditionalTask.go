@@ -4,7 +4,6 @@ import (
 	"iot-hub-api/internal/config"
 	"iot-hub-api/internal/mqtt"
 	"iot-hub-api/model"
-	"log"
 )
 
 type ConditionalTask struct {
@@ -24,5 +23,5 @@ func newConditionalTask(task *model.DispatcherTask, mqttService *mqtt.MqttServic
 }
 
 func (t ConditionalTask) Execute() {
-	log.Printf("[doc_id:%v]Executing Dispatcher ConditionalTask", t.task.DocId)
+	//log.Printf("[doc_id:%v]Executing Dispatcher ConditionalTask", t.task.DocId)
 }

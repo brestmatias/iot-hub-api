@@ -71,13 +71,14 @@ func buildApp(ctx context.Context) *App {
 
 	stationController := station.New(stationService)
 	dispatcherController := dispatcher.NewController(dispatcherService)
+	mqtt.NewMqttController(mqttService,&interfaceLastStatusRepository, configs)
 
 	MapCurrentHostInterfaces(hubConfigRepository)
 
 	//Cargo Tareas del dispatcher
 	dispatcherService.LoadTasks()
 	//Inicio Cron
-	cron.New(&stationService, &cronService)
+	cron.New(&stationService, &cronService, configs)
 
 	return &App{
 		Configs:              configs,

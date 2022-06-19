@@ -30,17 +30,18 @@ func (s CronService) BuildTasks() *[]model.CronFuncDTO {
 	for _, t := range *tasksDb {
 		switch t.TaskId {
 		case "seek_stations":
-			result = append(result, model.CronFuncDTO{Spec: t.Spec, Func: cron_tasks.NewSeekStationsTask(s.StationService, &t)})
+			result = append(result, model.CronFuncDTO{Spec: t.Spec, Func: cron_tasks.NewSeekStationsTask(s.StationService, &t), Description: t.TaskId })
 		case "handshake_stations":
-			result = append(result, model.CronFuncDTO{Spec: t.Spec, Func: cron_tasks.NewHandshakeTask(s.StationService, &t)})
+			result = append(result, model.CronFuncDTO{Spec: t.Spec, Func: cron_tasks.NewHandshakeTask(s.StationService, &t), Description: t.TaskId})
 		case "ping_stations":
-			result = append(result, model.CronFuncDTO{Spec: t.Spec, Func: cron_tasks.NewPingTask(s.StationService, &t)})
+			result = append(result, model.CronFuncDTO{Spec: t.Spec, Func: cron_tasks.NewPingTask(s.StationService, &t), Description: t.TaskId})
 		case "execute_dispatcher":
-			result = append(result, model.CronFuncDTO{Spec: t.Spec, Func: cron_tasks.NewExecuteDispatcherTask(s.DispatcherService, &t)})
+			result = append(result, model.CronFuncDTO{Spec: t.Spec, Func: cron_tasks.NewExecuteDispatcherTask(s.DispatcherService, &t), Description: t.TaskId})
+		case "reload_dispatcher":
+			result = append(result, model.CronFuncDTO{Spec: t.Spec, Func: cron_tasks.NewReloadDispatcherTask(s.DispatcherService, &t), Description: t.TaskId})
 		default:
 			log.Println("Build Cron Task", t.TaskId, "unimplemented!!!!")
 		}
-
 	}
 
 	return &result

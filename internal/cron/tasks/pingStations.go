@@ -3,7 +3,6 @@ package cron_tasks
 import (
 	"iot-hub-api/internal/station"
 	"iot-hub-api/model"
-	"log"
 )
 
 type PingTask struct {
@@ -20,6 +19,6 @@ func NewPingTask(stationService *station.StationService, config *model.CronTask)
 }
 
 func (t *PingTask) execute() {
-	log.Println("⏲️ ⏲️ Executing Cron Task: ", t.DBConfig.TaskId, "(", t.DBConfig.DocId.String(), ") ⏲️ ⏲️")
+	//log.Println("⏲️ ⏲️ Executing Cron Task: ", t.DBConfig.TaskId, "(", t.DBConfig.DocId.String(), ") ⏲️ ⏲️")
 	t.StationService.DoPing(nil)
 }

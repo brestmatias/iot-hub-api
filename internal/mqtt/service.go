@@ -14,12 +14,12 @@ import (
 )
 
 type MqttService struct {
-	BrokerIp         string
-	MinInterval      time.Duration
-	Client           MQTT.Client
-	HubConfigService *hub_config.HubConfigService
-	SentCommands     []CommandHash
+	BrokerIp                      string
+	Client                        MQTT.Client
+	HubConfigService              *hub_config.HubConfigService
+	SentCommands                  []CommandHash
 	InterfaceLastStatusRepository *repository.InterfaceLastStatusRepository
+	Config                        *config.ConfigFile
 }
 
 type CommandHash struct {
@@ -29,14 +29,12 @@ type CommandHash struct {
 }
 
 func NewMqttService(hubConfigService *hub_config.HubConfigService, configs *config.ConfigFile, interfaceLastStatusRepository *repository.InterfaceLastStatusRepository) *MqttService {
-	minInterval, _ := time.ParseDuration(config.GetConfigs().Mqtt.MinInterval)
 	service := MqttService{
-		HubConfigService: hubConfigService,
-		MinInterval:      minInterval,
+		HubConfigService:              hubConfigService,
 		InterfaceLastStatusRepository: interfaceLastStatusRepository,
+		Config:                        configs,
 	}
 	service.buildClient()
-	service.subscribe()
 	return &service
 }
 
@@ -80,7 +78,7 @@ func (m *MqttService) shouldSend(topic string, message interface{}) bool {
 	h := sha256.New()
 	h.Write([]byte(fmt.Sprintf("%v", message)))
 	hash := fmt.Sprintf("%x", h.Sum(nil))
-
+	minInterval, _ := time.ParseDuration(m.Config.Mqtt.MinInterval)
 	if len(m.SentCommands) == 0 {
 		m.SentCommands = append(m.SentCommands, CommandHash{
 			Topic:    topic,
@@ -93,7 +91,7 @@ func (m *MqttService) shouldSend(topic string, message interface{}) bool {
 	for i, command := range m.SentCommands {
 		if command.Topic == topic {
 			if command.LastHash == hash {
-				if diff := time.Now().Sub(command.LastSent); diff >= m.MinInterval {
+				if diff := time.Now().Sub(command.LastSent); diff >= minInterval {
 					(&m.SentCommands[i]).LastSent = time.Now()
 					return true
 				} else {
@@ -128,10 +126,4 @@ func (m *MqttService) PublishCommand(topic string, message interface{}) bool {
 	m.Client.Disconnect(250)
 
 	return true
-}
-
-func (m *MqttService) subscribe() {
-	if token := m.Client.Subscribe(NewStationNewsConsumer(m.InterfaceLastStatusRepository)); token.Wait() && token.Error() != nil {
-		log.Println("Error subscribing to station/news", token.Error())
-	}
 }

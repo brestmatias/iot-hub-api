@@ -25,3 +25,6 @@ slow-station-rest-client:
 mqtt:
   minInterval: 30s
   stationCommandTopic: "command/%s"
+
+cron:
+  reloadTaskSpec: "@every 0h1m5s"

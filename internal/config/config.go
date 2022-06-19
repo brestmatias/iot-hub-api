@@ -32,9 +32,12 @@ type ConfigFile struct {
 		DisableTimeout bool   `yaml:"disableTimeout"`
 	} `yaml:"slow-station-rest-client"`
 	Mqtt struct {
-		MinInterval         string `yaml:"minInterval"` // Min interval to send same previous menssage 
+		MinInterval         string `yaml:"minInterval"` // Min interval to send same previous menssage
 		StationCommandTopic string `yaml:"stationCommandTopic"`
 	} `yaml:"mqtt"`
+	Cron struct {
+		ReloadTaskSpec string `yaml:"reloadTaskSpec"`
+	}
 }
 
 func GetConfigs() *ConfigFile {

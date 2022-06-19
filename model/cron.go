@@ -12,4 +12,5 @@ type CronTask struct {
 type CronFuncDTO struct {
 	Spec string
 	Func func()
+	Description string
 }

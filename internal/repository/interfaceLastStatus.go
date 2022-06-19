@@ -17,7 +17,7 @@ import (
 type InterfaceLastStatusRepository interface {
 	UpsertDispatcherStatus(stationId string, interfaceId string, value int) int64
 	UpsertReportedStatus(stationId string, interfaceId string, value int) int64
-	 FindByField(field string, value interface{}) *[]model.InterfaceLastStatus
+	FindByField(field string, value interface{}) *[]model.InterfaceLastStatus
 }
 
 type interfaceLastStatusRepository struct {

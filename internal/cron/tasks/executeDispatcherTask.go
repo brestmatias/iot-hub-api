@@ -3,7 +3,6 @@ package cron_tasks
 import (
 	"iot-hub-api/internal/dispatcher"
 	"iot-hub-api/model"
-	"log"
 )
 
 type ExecuteDispatcherTask struct {
@@ -20,7 +19,7 @@ func NewExecuteDispatcherTask(dispatcherService *dispatcher.DispatcherService, c
 }
 
 func (t *ExecuteDispatcherTask) execute() {
-	log.Println("⏲️ ⏲️ Executing Cron Task: ", t.DBConfig.TaskId, "(", t.DBConfig.DocId.String(), ") ⏲️ ⏲️")
+	//log.Println("⏲️ ⏲️ Executing Cron Task: ", t.DBConfig.TaskId, "(", t.DBConfig.DocId.String(), ") ⏲️ ⏲️")
 	for _, i := range model.DispatcherTaskTypes {
 		t.DispatcherService.Execute(i)
 	}

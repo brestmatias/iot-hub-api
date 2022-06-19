@@ -3,7 +3,6 @@ package cron_tasks
 import (
 	"iot-hub-api/internal/station"
 	"iot-hub-api/model"
-	"log"
 )
 
 type HandshakeTask struct {
@@ -20,6 +19,6 @@ func NewHandshakeTask(stationService *station.StationService, config *model.Cron
 }
 
 func (t *HandshakeTask) execute() {
-	log.Println("⏲️ ⏲️ Executing Cron Task: ", t.DBConfig.TaskId, "(", t.DBConfig.DocId.String(), ") ⏲️ ⏲️")
+	//log.Println("⏲️ ⏲️ Executing Cron Task: ", t.DBConfig.TaskId, "(", t.DBConfig.DocId.String(), ") ⏲️ ⏲️")
 	t.StationService.DoHandshake(nil)
 }
