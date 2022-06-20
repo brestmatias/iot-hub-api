@@ -50,7 +50,7 @@ func (m *MqttService) buildClient() {
 
 	m.Client = MQTT.NewClient(o)
 	if token := m.Client.Connect(); token.Wait() && token.Error() != nil {
-		log.Printf("[method:%v] %v", method, token.Error().Error())
+		log.Fatalf("[method:%v] %v", method, token.Error().Error())
 	}
 }
 
@@ -123,7 +123,11 @@ func (m *MqttService) PublishCommand(topic string, message interface{}) bool {
 	token := m.Client.Publish(topic, 0, false, messageJSON)
 	log.Printf("[method:%v][topic:%v] Command Published", method, topic)
 	token.Wait()
-	m.Client.Disconnect(250)
+
+	// TODO !!!! OJO con esto que sigue, porque se desconectaba el cliente y se desuscribía
+	// revisar si es necesario recheckear la conexión cada x tiempo......
+	// sobre todo por las suscripciones
+	//m.Client.Disconnect(250) <-- no descomentar, solo lo dejo para acordarme de investigar
 
 	return true
 }
