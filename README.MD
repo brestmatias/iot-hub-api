@@ -52,8 +52,9 @@ systemctl status iot_hub_api
 Ver los logs:
 tail -f -n 20 /var/log/syslog
 
-
-
+# MQTT
+    Ver todas las queues
+        mosquitto_sub -t '#' -v    
 # STATION 
     Salidas:
    [TIPO][ID]
