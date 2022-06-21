@@ -8,6 +8,7 @@ type BeaconResponse struct {
 	ID         string   `json:"id"`
 	Interfaces []string `json:"interfaces"`
 	Broker     string   `json:"broker"`
+	Mac        string   `json:"mac"`
 }
 
 type StationPutResponse struct {
@@ -19,6 +20,7 @@ type Station struct {
 	DocId               primitive.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
 	ID                  string             `bson:"id" json:"id"`
 	IP                  string             `bson:"ip" json:"ip"`
+	Mac              	string             `bson:"mac" json:"mac"`
 	Broker              string             `bson:"broker" json:"broker"`
 	LastUpdate          primitive.DateTime `bson:"last_update" json:"last_update"`
 	Interfaces          []string           `bson:"interfaces" json:"interfaces"`

@@ -81,6 +81,7 @@ func (s *stationService) SeekOnlineStations(c *gin.Context) *[]model.Station {
 				sta := model.Station{
 					ID:         beaconResponse.ID,
 					IP:         ip.String(),
+					Mac: 		beaconResponse.Mac,
 					Broker:     beaconResponse.Broker,
 					Interfaces: beaconResponse.Interfaces,
 				}
