@@ -27,4 +27,5 @@ mqtt:
   stationCommandTopic: "command/%s"
 
 cron:
-  reloadTaskSpec: "@every 0h1m5s"
+  #desabilitado revisar comentario en cron.go, se me recargaba antes que ejecute alguna tarea
+  reloadTaskSpec: "@every 0h10m5s"
