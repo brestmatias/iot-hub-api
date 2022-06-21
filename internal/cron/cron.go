@@ -3,6 +3,7 @@ package cron
 import (
 	"iot-hub-api/internal/config"
 	"iot-hub-api/internal/station"
+	"iot-hub-api/model"
 	"log"
 
 	"github.com/robfig/cron/v3"
@@ -13,6 +14,7 @@ type Cron struct {
 	StationService *station.StationService
 	CronService    *CronService
 	Config         *config.ConfigFile
+	Funcs          []model.CronFuncDTO
 }
 
 func New(stationService *station.StationService, cronService *CronService, config *config.ConfigFile) *Cron {
@@ -33,6 +35,10 @@ func (s *Cron) Start() {
 }
 
 func (s *Cron) LoadFuncs() {
+	// TODO !!!! ajustar reloar para que no recargue tareas que no cambian
+	// el problema que ocurre es que se ejecuta el reload antes que la tarea corra
+	// provoca que nunca se ejecute la tarea
+
 	for _, entry := range s.Cron.Entries() {
 		s.Cron.Remove(entry.ID)
 	}
@@ -40,11 +46,15 @@ func (s *Cron) LoadFuncs() {
 	if cronTasksToStart != nil && len(*cronTasksToStart) > 0 {
 		for _, i := range *cronTasksToStart {
 			log.Printf("⏲️ ⏲️ [cron_task:%v][spec:%v] Cron Task configured.", i.Description, i.Spec)
-			s.Cron.AddFunc(i.Spec, i.Func)
+			newId, _ := s.Cron.AddFunc(i.Spec, i.Func)
+			i.EntryID = &newId
+			s.Funcs = append(s.Funcs, i)
 		}
 	}
-	if s.Config.Cron.ReloadTaskSpec != "" {
+
+	//DESABILITO EL AUTORELOAD DEL CRON HASTA QUE SOLUCIONE LO QUE ESCRIBO ARRIBA
+	/*if s.Config.Cron.ReloadTaskSpec != "" {
 		log.Println("Cron Config to be reloaded ", s.Config.Cron.ReloadTaskSpec)
 		s.Cron.AddFunc(s.Config.Cron.ReloadTaskSpec, s.LoadFuncs)
-	}
+	}*/
 }

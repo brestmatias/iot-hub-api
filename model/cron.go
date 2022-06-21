@@ -1,6 +1,9 @@
 package model
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"github.com/robfig/cron/v3"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 type CronTask struct {
 	DocId   primitive.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
@@ -10,7 +13,8 @@ type CronTask struct {
 }
 
 type CronFuncDTO struct {
-	Spec string
-	Func func()
+	Spec        string
+	Func        func()
 	Description string
+	EntryID     *cron.EntryID
 }

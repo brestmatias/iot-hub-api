@@ -88,6 +88,8 @@ func buildApp(ctx context.Context) *App {
 }
 
 func buildMongoClient(configs *config.ConfigFile, ctx context.Context) *mongo.Client {
+	method:="buildMongoClient"
+	log.Printf("[method:%v]🏗️ 🏗️ Building", method)
 	clientOptions := options.Client().ApplyURI(configs.Database.Uri)
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
@@ -102,6 +104,8 @@ func buildMongoClient(configs *config.ConfigFile, ctx context.Context) *mongo.Cl
 }
 
 func buildRestClients(configs *config.ConfigFile) restclient.StationClient {
+	method:="buildRestClients"
+	log.Printf("[method:%v]🏗️ 🏗️ Building", method)
 	customPool := &rest.CustomPool{
 		MaxIdleConnsPerHost: 100,
 	}

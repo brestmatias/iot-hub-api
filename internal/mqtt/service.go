@@ -29,6 +29,8 @@ type CommandHash struct {
 }
 
 func NewMqttService(hubConfigService *hub_config.HubConfigService, configs *config.ConfigFile, interfaceLastStatusRepository *repository.InterfaceLastStatusRepository) *MqttService {
+	method:="NewMqttService"
+	log.Printf("[method:%v]🏗️ 🏗️ Building", method)
 	service := MqttService{
 		HubConfigService:              hubConfigService,
 		InterfaceLastStatusRepository: interfaceLastStatusRepository,
