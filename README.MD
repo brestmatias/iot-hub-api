@@ -73,8 +73,8 @@ tail -f -n 20 /var/log/syslog
 ## CURLS - MQTT
 
 ### API
-curl --location --request GET 'http://192.168.1.116/beacon
-curl --location --request GET 'http://192.168.1.116/ping
+curl --location --request GET 'http://192.168.1.116/beacon'
+curl --location --request GET 'http://192.168.1.116/ping'
 
 curl --location -g --request PUT '{{sta}}/station' \
 --header 'Content-Type: application/json' \

@@ -127,14 +127,14 @@ func (s *stationService) DoHandshake(c *gin.Context) {
 			r, err := s.StationClient.SetBroker(c, station.IP, brokerIp)
 			if err != nil {
 				tracing.Log("[method:%s][station:%+v]Error Doing handshake %s", c, method, station, err.Error())
-				station.LastHandShakeResult = "error"
+				(&station).LastHandShakeResult = "error"
 			} else {
 				tracing.Log("[method:%s][result:%+v]Handshake OK", c, method, r)
-				station.LastHandShakeResult = "ok"
-				station.LastOkHandShake = primitive.NewDateTimeFromTime(time.Now())
-				station.LastPingStatus = "ok"
+				(&station).LastHandShakeResult = "ok"
+				(&station).LastOkHandShake = primitive.NewDateTimeFromTime(time.Now())
+				(&station).LastPingStatus = "ok"
 			}
-			station.LastHandShake = primitive.NewDateTimeFromTime(time.Now())
+			(&station).LastHandShake = primitive.NewDateTimeFromTime(time.Now())
 			s.StationRepository.Update(station)
 		}
 	}
