@@ -11,6 +11,15 @@ curl --location --request POST 'localhost:6980/dispatcher/reloadtasks'
 ## VAIO SERVER
     Conexion por eth
     ssh mati@192.168.1.117
+
+### DEPLOY
+
+cd /repository/iot-hub-api
+git fetch
+git pull
+go build -o ubuntu-iot-hub-api
+sudo systemctl restart iot_hub_api
+
 ### Compilar
     go build -o ubuntu-iot-hub-api .
 
@@ -92,5 +101,6 @@ Topic commands:
     {"interface":"L01", "value":0}
 
 
-
-
+REVISAR 
+-El handshake que no registra
+-reload del dispatcher

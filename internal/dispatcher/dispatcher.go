@@ -18,6 +18,8 @@ type DispatcherService struct {
 }
 
 func NewDispatcherService(mqttService *mqtt.MqttService, dispatcherRepository *repository.DispatcherRepository, interfaceLastStatusRepository *repository.InterfaceLastStatusRepository, config *config.ConfigFile) *DispatcherService {
+	method:="NewDispatcherService"
+	log.Printf("[method:%v]🏗️ 🏗️ Building", method)
 	return &DispatcherService{
 		MqttService:                   mqttService,
 		DispatcherRepository:          dispatcherRepository,

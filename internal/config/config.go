@@ -34,6 +34,10 @@ type ConfigFile struct {
 	Mqtt struct {
 		MinInterval         string `yaml:"minInterval"` // Min interval to send same previous menssage
 		StationCommandTopic string `yaml:"stationCommandTopic"`
+		PingTimeOut         string `yaml:"pingTimeOut"`
+		KeepAlive           string `yaml:"keepAlive"`
+		UserName            string `yaml:"userName"`
+		ClientId            string `yaml:"clientId"`
 	} `yaml:"mqtt"`
 	Cron struct {
 		ReloadTaskSpec string `yaml:"reloadTaskSpec"`

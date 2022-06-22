@@ -16,6 +16,8 @@ type CronService struct {
 }
 
 func NewCronService(cronRepository *repository.CronRepository, stationService *station.StationService, dispatcherService *dispatcher.DispatcherService) CronService {
+	method:="NewCronService"
+	log.Printf("[method:%v]🏗️ 🏗️ Building", method)
 	return CronService{
 		CronRepository:    cronRepository,
 		StationService:    stationService,

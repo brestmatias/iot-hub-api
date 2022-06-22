@@ -18,7 +18,7 @@ type Cron struct {
 }
 
 func New(stationService *station.StationService, cronService *CronService, config *config.ConfigFile) *Cron {
-	log.Println("Starting Scheduler")
+	log.Printf("🎬 🎬 Starting cron")
 	cron := Cron{
 		Cron:           cron.New(),
 		StationService: stationService,

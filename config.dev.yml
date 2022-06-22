@@ -25,6 +25,10 @@ slow-station-rest-client:
 mqtt:
   minInterval: 30s
   stationCommandTopic: "command/%s"
+  pingTimeOut: 2s
+  keepAlive: 120s
+  userName: dispatcher
+  clientId: iot-dispatcher-dev
 
 cron:
   #desabilitado revisar comentario en cron.go, se me recargaba antes que ejecute alguna tarea

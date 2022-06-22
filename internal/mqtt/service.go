@@ -29,7 +29,7 @@ type CommandHash struct {
 }
 
 func NewMqttService(hubConfigService *hub_config.HubConfigService, configs *config.ConfigFile, interfaceLastStatusRepository *repository.InterfaceLastStatusRepository) *MqttService {
-	method:="NewMqttService"
+	method := "NewMqttService"
 	log.Printf("[method:%v]🏗️ 🏗️ Building", method)
 	service := MqttService{
 		HubConfigService:              hubConfigService,
@@ -41,18 +41,25 @@ func NewMqttService(hubConfigService *hub_config.HubConfigService, configs *conf
 }
 
 func (m *MqttService) buildClient() {
-	method := "buildClient"
+	//method := "buildClient"
 
 	brokerIp := m.HubConfigService.GetBrokerAddress()
 	o := MQTT.NewClientOptions()
 	o.AddBroker(fmt.Sprintf("tcp://%v:1883", brokerIp))
-	o.SetClientID("iot-dispatcher")
-	o.SetUsername("dispatcher")
-	o.SetPingTimeout(1 * time.Second)
+	o.SetClientID(m.Config.Mqtt.ClientId)
+	o.SetUsername(m.Config.Mqtt.UserName)
+	if m.Config.Mqtt.PingTimeOut != "" {
+		x, _ := time.ParseDuration(m.Config.Mqtt.PingTimeOut)
+		o.SetPingTimeout(x)
+	}
+	if m.Config.Mqtt.KeepAlive != "" {
+		k, _ := time.ParseDuration(m.Config.Mqtt.KeepAlive)
+		o.SetKeepAlive(k)
+	}
 
 	m.Client = MQTT.NewClient(o)
 	if token := m.Client.Connect(); token.Wait() && token.Error() != nil {
-		log.Fatalf("[method:%v] %v", method, token.Error().Error())
+		panic(token.Error())
 	}
 }
 
@@ -118,10 +125,10 @@ func (m *MqttService) PublishCommand(topic string, message interface{}) bool {
 	method := "PublishCommand"
 
 	messageJSON, _ := json.Marshal(message)
-	if token := m.Client.Connect(); token.Wait() && token.Error() != nil {
+	/*if token := m.Client.Connect(); token.Wait() && token.Error() != nil {
 		log.Printf("[method:%v] %v", method, token.Error().Error())
 		return false
-	}
+	}*/
 	token := m.Client.Publish(topic, 0, false, messageJSON)
 	log.Printf("[method:%v][topic:%v] Command Published", method, topic)
 	token.Wait()

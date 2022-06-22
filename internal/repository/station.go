@@ -15,7 +15,7 @@ import (
 
 type StationRepository interface {
 	FindAll() *[]model.Station
-	FindByStationID(stationID string) *model.Station
+	FindByField(field string, value interface{}) *model.Station
 	InsertOne(model.Station) *model.Station
 	Update(model.Station) (*model.Station, error)
 }
@@ -58,9 +58,9 @@ func (s *stationRepository) Update(in model.Station) (*model.Station, error) {
 }
 
 // FindByStationID implements StationRepository
-func (s *stationRepository) FindByStationID(stationID string) *model.Station {
+func (s *stationRepository) FindByField(field string, value interface{}) *model.Station {
 	var result model.Station
-	filter := bson.M{"id": stationID}
+	filter := bson.M{field: value}
 	findResult := s.getStationCollection().FindOne(context.Background(), filter)
 	if findResult.Err() != nil && errors.Is(findResult.Err(), mongo.ErrNoDocuments) {
 		return nil

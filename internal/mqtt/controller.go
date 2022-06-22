@@ -23,7 +23,10 @@ func NewMqttController(mqttService *MqttService, interfaceLastStatusRepository *
 }
 
 func (m *MqttController) subscribe() {
+	log.Printf("Subscribing to Station News Topic.")
 	if token := m.MqttService.Client.Subscribe(NewStationNewsConsumer(m.InterfaceLastStatusRepository, m.MqttService, m.Config)); token.Wait() && token.Error() != nil {
 		log.Println("Error subscribing to station/news", token.Error())
 	}
+	log.Printf("End subscribing MQTT topics.")
+
 }

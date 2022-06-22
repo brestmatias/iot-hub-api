@@ -7,6 +7,7 @@ import (
 	"iot-hub-api/internal/restclient"
 	"iot-hub-api/model"
 	"iot-hub-api/tracing"
+	"log"
 	"net"
 	"time"
 
@@ -28,6 +29,8 @@ type stationService struct {
 }
 
 func NewStationService(stationRepository repository.StationRepository, hubConfigService *hub_config.HubConfigService, stationClient restclient.StationClient) StationService {
+	method := "NewStationService"
+	log.Printf("[method:%v]🏗️ 🏗️ Building", method)
 	return &stationService{
 		StationRepository: stationRepository,
 		StationClient:     stationClient,
@@ -81,7 +84,7 @@ func (s *stationService) SeekOnlineStations(c *gin.Context) *[]model.Station {
 				sta := model.Station{
 					ID:         beaconResponse.ID,
 					IP:         ip.String(),
-					Mac: 		beaconResponse.Mac,
+					Mac:        beaconResponse.Mac,
 					Broker:     beaconResponse.Broker,
 					Interfaces: beaconResponse.Interfaces,
 				}
@@ -100,11 +103,13 @@ func (s *stationService) SeekAndSaveOnlineStations(c *gin.Context) *[]model.Stat
 	var result []model.Station
 	tracing.Log("[method:%v]Merging stations with database", c, method)
 	for _, foundSta := range *foundStations {
-		dbStation := s.StationRepository.FindByStationID(foundSta.ID)
+		dbStation := s.StationRepository.FindByField("mac", foundSta.Mac)
 		tracing.Log("[method:%v][station_id:%v]Station was found in DB", c, method, foundSta.ID)
 		if dbStation != nil {
-			foundSta.DocId = dbStation.DocId
-			updateResult, _ := s.StationRepository.Update(foundSta)
+			dbStation.ID = foundSta.ID
+			dbStation.Broker = foundSta.Broker
+			dbStation.Interfaces = foundSta.Interfaces
+			updateResult, _ := s.StationRepository.Update(*dbStation)
 			result = append(result, *updateResult)
 		} else {
 			result = append(result, *s.StationRepository.InsertOne(foundSta))
@@ -122,20 +127,23 @@ func (s *stationService) DoHandshake(c *gin.Context) {
 	}
 	stations := s.StationRepository.FindAll()
 	for i := range *stations {
-		station:=(*stations)[i]
+		station := (*stations)[i]
 		if station.Broker != brokerIp {
-			tracing.Log("[method:%s][station:%+v][ip:%+v]Doing Handshake", c, method, station.ID, station.IP)
+			//tracing.Log("[method:%s][station:%+v][ip:%+v]Doing Handshake", c, method, station.ID, station.IP)
 			r, err := s.StationClient.SetBroker(c, station.IP, brokerIp)
 			if err != nil {
-				tracing.Log("[method:%s][station:%+v]Error Doing handshake %s", c, method, station, err.Error())
+				tracing.Log("[method:%s][station:%v][mac:%v]Error Doing handshake %s", c, method, station.ID, station.Mac, err.Error())
 				station.LastHandShakeResult = "error"
 			} else {
 				tracing.Log("[method:%s][result:%+v]Handshake OK", c, method, r)
 				station.LastHandShakeResult = "ok"
 				station.LastOkHandShake = primitive.NewDateTimeFromTime(time.Now())
-				station.LastPingStatus = "ok"
 			}
 			station.LastHandShake = primitive.NewDateTimeFromTime(time.Now())
+			s.StationRepository.Update(station)
+		} else {
+			station.LastHandShake = primitive.NewDateTimeFromTime(time.Now())
+			station.LastHandShakeResult = "no_action"
 			s.StationRepository.Update(station)
 		}
 	}
