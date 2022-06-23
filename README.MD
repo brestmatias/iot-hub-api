@@ -14,11 +14,26 @@ curl --location --request POST 'localhost:6980/dispatcher/reloadtasks'
 
 ### DEPLOY
 
-cd /repository/iot-hub-api
-git fetch
-git pull
-go build -o ubuntu-iot-hub-api
-sudo systemctl restart iot_hub_api
+    Con script ejecutar deploy.sh
+
+
+####  deploy.sh
+    #!/bin/bash
+
+    printf "********DEPLOY SCRIPT STARTING******\n"
+    cd /repository/iot-hub-api
+    printf "\t1. Stoping iot_hub_apiservice\n"
+    sudo systemctl stop iot_hub_api
+    printf "\t2. Updating local repository\n"
+    git fetch
+    git pull
+    printf "\t3. Building app\n"
+    go build -o ubuntu-iot-hub-api
+    printf "\t4. Starting service\n"
+    sudo systemctl start iot_hub_api
+    systemctl status iot_hub_api
+
+    printf "********DEPLOY FINISHED SUCESSFULLY\n"
 
 ### Compilar
     go build -o ubuntu-iot-hub-api .
@@ -84,6 +99,7 @@ tail -f -n 20 /var/log/syslog
 ### API
 curl --location --request GET 'http://192.168.1.116/beacon'
 curl --location --request GET 'http://192.168.1.116/ping'
+curl --location --request GET 'http://192.168.1.103/status'
 
 curl --location -g --request PUT '{{sta}}/station' \
 --header 'Content-Type: application/json' \
@@ -102,5 +118,4 @@ Topic commands:
 
 
 REVISAR 
--El handshake que no registra
 -reload del dispatcher
