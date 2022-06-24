@@ -7,6 +7,9 @@ curl --location --request POST '192.168.1.117:8080/station/discover'
 curl --location --request POST '192.168.1.117:8080/station/handshake'
 curl --location --request POST 'localhost:6980/dispatcher/reloadtasks'
 
+# API
+curl --silent --location --request GET 'http://localhost:6980/station/interface'
+
 # SERVERS
 ## VAIO SERVER
     Conexion por eth

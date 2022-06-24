@@ -31,3 +31,12 @@ func (c *Controller) DoHandshake(ginCtx *gin.Context, ctx context.Context) {
 	c.StationService.DoHandshake(ginCtx)
 	ginCtx.Writer.WriteHeader(http.StatusOK)
 }
+
+func (c *Controller) GetAllInterfaces(ginCtx *gin.Context, ctx context.Context) {
+	sta := c.StationService.GetInterfaceSummary(ginCtx)
+	if len(*sta) == 0 {
+		ginCtx.Writer.WriteHeader(http.StatusNoContent)
+		return
+	}
+	ginCtx.JSON(http.StatusOK, sta)
+}

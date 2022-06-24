@@ -30,6 +30,10 @@ func buildRouter(ctx context.Context, router *gin.Engine, app *App) {
 		app.StationController.DoHandshake(c, ctx)
 	})
 
+	router.GET("/station/interface", func(c *gin.Context) {
+		app.StationController.GetAllInterfaces(c, ctx)
+	})
+
 	router.POST("/dispatcher/reloadtasks", func(c *gin.Context) {
 		app.DispatcherController.ReloadTasks(c, ctx)
 	})

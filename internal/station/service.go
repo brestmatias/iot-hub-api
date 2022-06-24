@@ -16,25 +16,29 @@ import (
 )
 
 type StationService interface {
-	SeekOnlineStations(*gin.Context) *[]model.Station
+	SeekOnlineStations(*gin.Context) *[]model.BeaconResponse
 	SeekAndSaveOnlineStations(*gin.Context) *[]model.Station
 	DoHandshake(*gin.Context)
 	DoPing(*gin.Context)
+	GetInterfaceSummary(c *gin.Context) *[]model.InterfaceSummaryResponse
 }
 
 type stationService struct {
-	StationRepository repository.StationRepository
-	HubConfigService  *hub_config.HubConfigService
-	StationClient     restclient.StationClient
+	StationRepository             *repository.StationRepository
+	HubConfigService              *hub_config.HubConfigService
+	StationClient                 *restclient.StationClient
+	InterfaceLastStatusRepository *repository.InterfaceLastStatusRepository
 }
 
-func NewStationService(stationRepository repository.StationRepository, hubConfigService *hub_config.HubConfigService, stationClient restclient.StationClient) StationService {
+func NewStationService(stationRepository *repository.StationRepository, hubConfigService *hub_config.HubConfigService,
+	stationClient *restclient.StationClient, interfaceLastStatusRepository *repository.InterfaceLastStatusRepository) StationService {
 	method := "NewStationService"
 	log.Printf("[method:%v]🏗️ 🏗️ Building", method)
 	return &stationService{
 		StationRepository: stationRepository,
 		StationClient:     stationClient,
 		HubConfigService:  hubConfigService,
+		InterfaceLastStatusRepository: interfaceLastStatusRepository,
 	}
 }
 
@@ -62,9 +66,9 @@ func shouldDiscardIp(ip net.IP, localAddresses *[]network.NetworkAddress) bool {
 	return false
 }
 
-func (s *stationService) SeekOnlineStations(c *gin.Context) *[]model.Station {
+func (s *stationService) SeekOnlineStations(c *gin.Context) *[]model.BeaconResponse {
 	method := "SeekOnlineStations"
-	var result []model.Station
+	var result []model.BeaconResponse
 	localNetWorkAddresses, _ := network.GetLocalAddresses()
 	var scannedNetworks []string
 	for _, localNetworkAddress := range *localNetWorkAddresses {
@@ -79,16 +83,10 @@ func (s *stationService) SeekOnlineStations(c *gin.Context) *[]model.Station {
 				// tracing.Log("[method:%v][ip:%v]Discarding IP", c, method, ip)
 				continue
 			}
-			beaconResponse, _ := s.StationClient.GetBeacon(c, ip.String())
+			beaconResponse, _ := (*s.StationClient).GetBeacon(c, ip.String())
 			if beaconResponse != nil {
-				sta := model.Station{
-					ID:         beaconResponse.ID,
-					IP:         ip.String(),
-					Mac:        beaconResponse.Mac,
-					Broker:     beaconResponse.Broker,
-					Interfaces: beaconResponse.Interfaces,
-				}
-				result = append(result, sta)
+				beaconResponse.IP = ip.String()
+				result = append(result, *beaconResponse)
 				tracing.Log("[method:%v][beacon:%+v] Beacon response", c, method, result)
 			}
 		}
@@ -103,19 +101,36 @@ func (s *stationService) SeekAndSaveOnlineStations(c *gin.Context) *[]model.Stat
 	var result []model.Station
 	tracing.Log("[method:%v]Merging stations with database", c, method)
 	for _, foundSta := range *foundStations {
-		dbStation := s.StationRepository.FindByField("mac", foundSta.Mac)
+		dbStation := (*s.StationRepository).FindByField("mac", foundSta.Mac)
 		tracing.Log("[method:%v][station_id:%v]Station was found in DB", c, method, foundSta.ID)
 		if dbStation != nil {
 			dbStation.ID = foundSta.ID
 			dbStation.Broker = foundSta.Broker
-			dbStation.Interfaces = foundSta.Interfaces
-			updateResult, _ := s.StationRepository.Update(*dbStation)
+			dbStation.Interfaces = s.mergeStationInterfaces(*dbStation, foundSta)
+			updateResult, _ := (*s.StationRepository).Update(*dbStation)
 			result = append(result, *updateResult)
 		} else {
-			result = append(result, *s.StationRepository.InsertOne(foundSta))
+			result = append(result, *(*s.StationRepository).InsertOne(foundSta.MapToStation()))
 		}
 	}
 	return &result
+}
+
+func (s *stationService) mergeStationInterfaces(dbStation model.Station, beaconResponse model.BeaconResponse) []model.StationInterface {
+	merged := dbStation.Interfaces
+	for _, r := range beaconResponse.Interfaces {
+		notInDb := true
+		for _, m := range merged {
+			if m.ID == r {
+				notInDb = false
+				continue
+			}
+		}
+		if notInDb {
+			merged = append(merged, model.StationInterface{ID: r})
+		}
+	}
+	return merged
 }
 
 func (s *stationService) DoHandshake(c *gin.Context) {
@@ -125,12 +140,12 @@ func (s *stationService) DoHandshake(c *gin.Context) {
 		tracing.Log("[method:%s][result:%+v]No broker Ip is not set", c, method)
 		return
 	}
-	stations := s.StationRepository.FindAll()
+	stations := (*s.StationRepository).FindAll()
 	for i := range *stations {
 		station := (*stations)[i]
 		if station.Broker != brokerIp {
 			//tracing.Log("[method:%s][station:%+v][ip:%+v]Doing Handshake", c, method, station.ID, station.IP)
-			r, err := s.StationClient.SetBroker(c, station.IP, brokerIp)
+			r, err := (*s.StationClient).SetBroker(c, station.IP, brokerIp)
 			if err != nil {
 				tracing.Log("[method:%s][station:%v][mac:%v]Error Doing handshake %s", c, method, station.ID, station.Mac, err.Error())
 				station.LastHandShakeResult = "error"
@@ -140,11 +155,11 @@ func (s *stationService) DoHandshake(c *gin.Context) {
 				station.LastOkHandShake = primitive.NewDateTimeFromTime(time.Now())
 			}
 			station.LastHandShake = primitive.NewDateTimeFromTime(time.Now())
-			s.StationRepository.Update(station)
+			(*s.StationRepository).Update(station)
 		} else {
 			station.LastHandShake = primitive.NewDateTimeFromTime(time.Now())
 			station.LastHandShakeResult = "no_action"
-			s.StationRepository.Update(station)
+			(*s.StationRepository).Update(station)
 		}
 	}
 	tracing.Log("[method:%s]End Handshake", c, method)
@@ -152,16 +167,36 @@ func (s *stationService) DoHandshake(c *gin.Context) {
 
 func (s *stationService) DoPing(c *gin.Context) {
 	method := "DoPing"
-	stations := s.StationRepository.FindAll()
+	stations := (*s.StationRepository).FindAll()
 	tracing.Log("[method:%s][stations:%+v]Doing", c, method, stations)
 	for _, station := range *stations {
-		response := s.StationClient.DoPing(c, station.IP)
+		response := (*s.StationClient).DoPing(c, station.IP)
 		if response {
 			station.LastPingStatus = "ok"
 		} else {
 			station.LastPingStatus = "bad"
 		}
-		s.StationRepository.Update(station)
+		(*s.StationRepository).Update(station)
 	}
 	tracing.Log("[method:%s]End", c, method)
+}
+
+func (s *stationService) GetInterfaceSummary(c *gin.Context) *[]model.InterfaceSummaryResponse {
+	// method := "GetInterfaceSummary"
+	var result []model.InterfaceSummaryResponse
+	stations := (*s.StationRepository).FindAll()
+ 	//lastStatus:=(*s.InterfaceLastStatusRepository).()
+
+	for _,station:=range *stations{
+		for _,interf:=range station.Interfaces {
+			result = append(result, model.InterfaceSummaryResponse{
+				StationID:   station.ID,
+				InterfaceID: interf.ID,
+				Name:        interf.Name,
+				Description: interf.Description,
+				Value:       0,
+			})
+		}
+	}
+	return &result
 }

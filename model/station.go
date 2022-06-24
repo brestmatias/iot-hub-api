@@ -9,6 +9,22 @@ type BeaconResponse struct {
 	Interfaces []string `json:"interfaces"`
 	Broker     string   `json:"broker"`
 	Mac        string   `json:"mac"`
+	IP         string   `json:"ip"`
+}
+
+func (b *BeaconResponse) MapToStation() Station {
+	var interfaces []StationInterface
+	for _, i := range b.Interfaces {
+		interfaces = append(interfaces, StationInterface{ID: i})
+	}
+	sta := Station{
+		ID:         b.ID,
+		IP:         b.IP,
+		Mac:        b.Mac,
+		Broker:     b.Broker,
+		Interfaces: interfaces,
+	}
+	return sta
 }
 
 type StationPutResponse struct {
@@ -20,14 +36,20 @@ type Station struct {
 	DocId               primitive.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
 	ID                  string             `bson:"id" json:"id"`
 	IP                  string             `bson:"ip" json:"ip"`
-	Mac              	string             `bson:"mac" json:"mac"`
+	Mac                 string             `bson:"mac" json:"mac"`
 	Broker              string             `bson:"broker" json:"broker"`
 	LastUpdate          primitive.DateTime `bson:"last_update" json:"last_update"`
-	Interfaces          []string           `bson:"interfaces" json:"interfaces"`
+	Interfaces          []StationInterface `bson:"interfaces" json:"interfaces"`
 	LastHandShake       primitive.DateTime `bson:"last_handshake" json:"last_handshake"`
 	LastOkHandShake     primitive.DateTime `bson:"last_ok_handshake" json:"last_ok_handshake"`
 	LastHandShakeResult string             `bson:"last_handshake_result" json:"last_handshake_result"`
 	LastPingStatus      string             `bson:"last_ping_status" json:"last_ping_status"`
+}
+
+type StationInterface struct {
+	ID          string `bson:"id" json:"id"`
+	Name        string `bson:"name" json:"name"`
+	Description string `bson:"description" json:"description"`
 }
 
 type InterfaceLastStatus struct {
@@ -55,4 +77,12 @@ type StationNewsBody struct {
 type StationNewsInterfaceStatusBody struct {
 	Id    string `json:"id"`
 	Value int    `json:"value,omitempty"`
+}
+
+type InterfaceSummaryResponse struct {
+	StationID   string `bson:"station_id" json:"station_id"`
+	InterfaceID string `bson:"interface_id" json:"interface_id"`
+	Name        string `bson:"name" json:"name"`
+	Description string `bson:"description" json:"description"`
+	Value       int    `bson:"value" json:"value"`
 }
